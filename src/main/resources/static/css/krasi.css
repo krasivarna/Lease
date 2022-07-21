@@ -1,0 +1,109 @@
+.key{}
+.key:hover, key:focus {
+    cursor: pointer;
+    text-decoration: underline;
+}
+.arrow{
+    border: none;
+}
+.arrow:hover, arrow:focus {
+    cursor: pointer;
+}
+.dropbtn {
+    background-color: #4CAF50;
+    color: darkred;
+    padding: 16px;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+}
+
+.dropbtn:hover, .dropbtn:focus {
+    background-color: #3e8e41;
+}
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    //overflow: auto;
+    pointer-events: auto;
+}
+
+.dropdown-content a {
+    color: black;
+    //padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+.dropdown-content td:hover {background-color: #f1f1f1}
+
+.listDown {
+    background-color: #b3d7ff;
+}
+.show {display:block;}
+
+.input-icon {
+    position: relative;
+}
+
+.input-icon > i {
+    position: absolute;
+    display: block;
+    transform: translate(0, -50%);
+    top: 50%;
+    pointer-events: auto;
+    width: 25px;
+    text-align: center;
+    font-style: normal;
+}
+
+.input-icon > input {
+    padding-left: 25px;
+    padding-right: 0;
+}
+
+.input-icon-right > i {
+    right: 0;
+}
+
+.input-icon-right > input {
+    padding-left: 0;
+    padding-right: 25px;
+    text-align: right;
+}
+.icon-down:before {
+    content: "\25BC";
+}
+
+.fixedTable {
+    height: 200px;
+    width:400px;
+    table-layout: fixed;
+    border-collapse: collapse;
+}
+.fixedTable thead{
+    display: table-caption;
+}
+.fixedTable tbody{
+    height:200px;
+    overflow:auto;
+    display: block;
+}
+.fixedTable thead tr{
+    display: block;
+    height: 50px;
+    vertical-align: bottom;
+}
+
+.list-padding {
+    padding-top:35px;
+}
+.listDownHeader{
+    background-color: #80bdff;
+}

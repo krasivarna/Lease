@@ -1,0 +1,30 @@
+<nav class="main-nav">
+    <ul>
+        <li>
+            <a th:href="@{/}">Home</a>
+        </li>
+        <li>
+            <a th:href="@{/vendorlist}">Vendor list</a>
+        </li>
+        <li>
+            <a th:href="@{/leasinglist}">Lease list</a>
+        </li>
+        <li>
+            <a th:href="@{/countrylist}">Country list</a>
+        </li>
+        <li>
+            <a th:href="@{/vehiclelist}">Vehicle list</a>
+        </li>
+        <li>
+            <a th:href="@{/users/register}">Register</a>
+        </li>
+        <li>
+            <a th:href="@{/users/login}">Login</a>
+        </li>
+        </li>
+            <form th:action="@{/users/logout}" th:method="post">
+                <input class="btn btn-link nav-link" type="submit" value="Logout">
+            </form>
+        </li>
+    </ul>
+</nav>

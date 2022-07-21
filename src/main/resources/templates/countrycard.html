@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Country card</title>
+    <th:block th:replace="~{/fragments/head}"></th:block>
+</head>
+<body>
+<div class="container">
+    <h2 class="text-center text-dark">Country Card</h2>
+    <form
+            th:action="@{/countrycard}"
+            th:method="post"
+            th:object="${countryDTO}"
+            class="text-white main-form mx-auto col-md-8 d-flex flex-column justify-content-center">
+        <div class="row">
+            <div class="form-group col-md-6 mb-3">
+                <label for="no" class="font-weight-bold">Country No.</label>
+                <input id="no"
+                       th:field="*{no}"
+                       th:errorclass="is-invalid"
+                       type="text"
+                       class="form-control"
+                       placeholder="Country No."/>
+            </div>
+            <div class="form-group col-md-6 mb-3">
+                <label for="name" class="font-weight-bold">Country Name</label>
+                <input id="name"
+                       th:field="*{name}"
+                       th:errorclass="is-invalid"
+                       type="text"
+                       class="form-control"
+                       placeholder="Country Name"/>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button id="save" class="btn btn-primary" type="submit">Save</button>
+            <a id="cancel" class="btn btn btn-secondary" type="button" th:href="@{/countrylist}">Cancel</a>
+        </div>
+    </form>
+</div>
+</body>
+</html>
