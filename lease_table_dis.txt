@@ -1,0 +1,2451 @@
+OBJECT Table 50023 Lease Header
+{
+  OBJECT-PROPERTIES
+  {
+    Date=19.11.18;
+    Time=19:26:41;
+    Modified=Yes;
+    Version List=DIS_LIZ,DIS.143.181.201;
+  }
+  PROPERTIES
+  {
+    OnInsert=VAR
+               tDate@1000000000 : Date;
+             BEGIN
+
+               Lsetup.GET;
+               tDate:=TODAY;
+               IF "Contract No"='' THEN
+                  NoSeriesMgt.InitSeries(Lsetup."Lease Nos.",xRec."No. Series",tDate,"Contract No","No. Series");
+             END;
+
+    OnModify=VAR
+               lText001@1000000004 : TextConst 'BGR=Не може да се променят;ENU=Do You not modified';
+               lText002@1000000003 : TextConst 'BGR=Няма промяна на %1;ENU=None change on %1';
+               lText003@1000000002 : TextConst 'BGR=Няма промяна на %1, %2, %3, %4;ENU=None change on %1, %2 , %3, %4';
+               lText004@1000000001 : TextConst 'BGR=Има непогасени вноски;ENU=There are not payed payments';
+               lText005@1000000000 : TextConst 'BGR=Не може да се променя само %1;ENU=Do You not modified only %1';
+             BEGIN
+
+               CASE "Lease Status" OF
+                  "Lease Status"::Active : BEGIN
+                     IF NOT (("Ext Document"<>xRec."Ext Document") OR
+                             ("Principal Interest %"<>xRec."Principal Interest %") OR
+                             ("VAT Interest %"<>xRec."VAT Interest %") OR
+                             ("Contract Date"<>xRec."Contract Date") OR
+                             ("Lease Status"<>xRec."Lease Status") OR
+                             ("Date Modify Percent"<>xRec."Date Modify Percent") OR
+                             ("Global Dimension 1 Code"<>xRec."Global Dimension 1 Code") OR
+                             ("Begin PayOff Date"<>xRec."Begin PayOff Date")) THEN
+                        ERROR(lText001);
+
+                     IF ("Principal Interest %"<>xRec."Principal Interest %") OR
+                        ("VAT Interest %"<>xRec."VAT Interest %") OR
+                        ("Global Dimension 1 Code"<>xRec."Global Dimension 1 Code") OR
+                        ("Begin PayOff Date"<>xRec."Begin PayOff Date") THEN
+                        IF ("Date Modify Percent"=xRec."Date Modify Percent") OR
+                           ("Date Modify Percent"=0D) THEN
+                             ERROR(lText002,FIELDCAPTION("Date Modify Percent"))
+                        ELSE BEGIN
+                           IF ("Global Dimension 1 Code"<>xRec."Global Dimension 1 Code") THEN
+                              ValidateShortcutDimCode
+                           ELSE
+                              IF ("Begin PayOff Date"<>xRec."Begin PayOff Date") THEN
+                                 UpdateDueDate
+                              ELSE
+                                 CorrectInterest;
+                           "In Process":=TRUE;
+                        END;
+
+                     IF ("Date Modify Percent"<>xRec."Date Modify Percent") AND
+                        ("Date Modify Percent"<>0D) AND (NOT "In Process") THEN
+                        IF ("Principal Interest %"=xRec."Principal Interest %") AND
+                           ("VAT Interest %"=xRec."VAT Interest %") THEN BEGIN
+                           IF ("Global Dimension 1 Code"=xRec."Global Dimension 1 Code") THEN BEGIN
+                              IF ("Begin PayOff Date"=xRec."Begin PayOff Date") THEN
+                                 ERROR(lText003,FIELDCAPTION("Principal Interest %"),
+                                                FIELDCAPTION("VAT Interest %"),
+                                                FIELDCAPTION("Global Dimension 1 Code"),
+                                                FIELDCAPTION("Begin PayOff Date"))
+                              ELSE
+                                 UpdateDueDate;
+                           END ELSE
+                              ValidateShortcutDimCode;
+                        END ELSE
+                           CorrectInterest;
+
+                     "In Process":=FALSE;
+                   END;
+                  "Lease Status"::Reoffer : BEGIN
+                     IF NOT (("Principal Period"<>xRec."Principal Period") OR
+                             ("VAT Period"<>xRec."VAT Period") OR
+                             ("Principal Grace Period"<>xRec."Principal Grace Period") OR
+                             ("VAT Grace Period"<>xRec."VAT Grace Period") OR
+                             ("Lease Status"<>xRec."Lease Status") OR
+                             ("Date Modify Percent"<>xRec."Date Modify Percent") OR
+                             ("Type Payment"<>xRec."Type Payment")) THEN
+                        ERROR(lText001);
+
+                     IF ("Principal Period"<>xRec."Principal Period") OR
+                        ("VAT Period"<>xRec."VAT Period") OR
+                        ("Principal Grace Period"<>xRec."Principal Grace Period") OR
+                        ("VAT Grace Period"<>xRec."VAT Grace Period") THEN
+                        IF ("Date Modify Percent"=xRec."Date Modify Percent") OR
+                           ("Date Modify Percent"=0D) THEN
+                             ERROR(lText002,FIELDCAPTION("Date Modify Percent"))
+                        ELSE BEGIN
+                           RebuildPlan;
+                           "In Process":=TRUE;
+                        END;
+
+                     IF ("Date Modify Percent"<>xRec."Date Modify Percent") AND
+                        ("Date Modify Percent"<>0D) AND (NOT "In Process") THEN
+                        IF ("Principal Period"=xRec."Principal Period") AND
+                           ("VAT Period"=xRec."VAT Period") AND
+                           ("Principal Grace Period"=xRec."Principal Grace Period") AND
+                           ("VAT Grace Period"=xRec."VAT Grace Period") THEN BEGIN
+
+                              ERROR(lText003,FIELDCAPTION("Principal Period"),
+                                            FIELDCAPTION("VAT Period"),
+                                            FIELDCAPTION("Principal Grace Period"),
+                                            FIELDCAPTION("VAT Grace Period"))
+                        END ELSE BEGIN
+                           RebuildPlan;
+                           "In Process":=TRUE;
+                        END;
+                     IF NOT "In Process" THEN
+                        ERROR(lText005,FIELDCAPTION("Lease Status"))
+                     ELSE
+                        "In Process":=FALSE;
+
+                   END;
+                  "Lease Status"::Closed : BEGIN
+                     IF NOT ("Lease Status"<>xRec."Lease Status") THEN
+                        ERROR(lText001);
+                     "Date Modify Percent":=CALCDATE('<-1D>',"Begin PayOff Date");
+                     CancelPayOff;
+                     IF NOT CheckClosed THEN
+                        ERROR(lText004);
+                   END;
+
+                  "Lease Status"::Cancel : BEGIN
+                     IF NOT ("Lease Status"<>xRec."Lease Status") THEN
+                        ERROR(lText001);
+                     "Date Modify Percent":=CALCDATE('<1M>',"Begin PayOff Date");
+                     CancelPayOff;
+                   END;
+               //14.11.2017 - krasi
+                  "Lease Status"::Early : BEGIN
+                     IF NOT ("Lease Status"<>xRec."Lease Status") THEN
+                        ERROR(lText001);
+
+                     EarlyPayOff;
+                     IF NOT CheckEarly THEN
+                        ERROR(lText004);
+                   END;
+               //
+                  ELSE
+                     IF ("Global Dimension 1 Code"<>xRec."Global Dimension 1 Code") THEN
+                        ValidateShortcutDimCode;
+                     "Date Modify Percent":=0D;
+               END;
+               IF "Type Invoicing"="Type Invoicing"::InBegin THEN
+                  TESTFIELD("Vendor 1 No");
+               IF "Vendor No"<>xRec."Vendor No" THEN
+                  UpdateVendor;
+             END;
+
+    OnDelete=VAR
+               recLeaseDetail@1000000002 : Record 50024;
+               recLeaseAmt@1000000001 : Record 50026;
+               recLeasePer@1000000000 : Record 50035;
+             BEGIN
+
+               IF "Lease Status"<>"Lease Status"::" " THEN
+                  ERROR(Text002);
+
+               IF NOT cunLeaseTool.DeletePayOffPlan(Rec) THEN
+                  ERROR('');
+
+               recLeaseDetail.RESET;
+               recLeaseDetail.SETRANGE("Contract No","Contract No");
+               recLeaseDetail.DELETEALL;
+
+               recLeaseAmt.RESET;
+               recLeaseAmt.SETRANGE("Contract No","Contract No");
+               recLeaseAmt.DELETEALL;
+
+               recLeasePer.RESET;
+               recLeasePer.SETRANGE("Contract No","Contract No");
+               recLeasePer.DELETEALL;
+             END;
+
+    OnRename=BEGIN
+               ERROR(Text001,TABLECAPTION);
+             END;
+
+    CaptionML=[BGR=Лизинг Заглавна таблица;
+               ENU=Lease Header table];
+    LookupPageID=Page50091;
+    DrillDownPageID=Page50091;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Contract No         ;Code20        ;CaptionML=[BGR=Договор No;
+                                                              ENU=Contract No];
+                                                   Editable=No }
+    { 2   ;   ;Contract Date       ;Date          ;CaptionML=[BGR=Договор Дата;
+                                                              ENU=Contract Date] }
+    { 3   ;   ;Principal Period    ;Integer       ;CaptionML=[BGR=Главница Период (месеци);
+                                                              ENU=Principal Period (months)] }
+    { 4   ;   ;Vendor No           ;Code20        ;TableRelation=Vendor;
+                                                   OnValidate=VAR
+                                                                recVendor@1400000 : Record 23;
+                                                              BEGIN
+                                                                IF recVendor.GET("Vendor No") THEN
+                                                                   "Vendor Name":=recVendor.Name
+                                                                ELSE
+                                                                   "Vendor Name":='';
+                                                              END;
+
+                                                   CaptionML=[BGR=Доставчик No;
+                                                              ENU=Vendor  No] }
+    { 5   ;   ;Principal Excl VAT  ;Decimal       ;OnValidate=BEGIN
+                                                                IF NOT IsHaveVAT(Rec) THEN
+                                                                   "Interest with VAT":=FALSE;
+                                                              END;
+
+                                                   CaptionML=[BGR=Главница без ДДС;
+                                                              ENU=Principal Excl VAT];
+                                                   AutoFormatExpr="Currency Code" }
+    { 6   ;   ;Principal Interest Excl VAT;Decimal;FieldClass=FlowField;
+                                                   CalcFormula=Sum(PayOffplan."Interest Excl VAT" WHERE (Contract No=FIELD(Contract No),
+                                                                                                         bCancel=FILTER(No)));
+                                                   CaptionML=[BGR=Лихва без ДДС;
+                                                              ENU=Interest Excl VAT];
+                                                   Editable=No;
+                                                   AutoFormatExpr="Currency Code" }
+    { 7   ;   ;Type Invoicing      ;Option        ;OnValidate=BEGIN
+                                                                IF "Type Invoicing"="Type Invoicing"::EveryMonth THEN BEGIN
+                                                                   "Vendor 1 No":='';
+                                                                   "Vendor 1 Name":='';
+                                                                END;
+                                                              END;
+
+                                                   CaptionML=[BGR=Начин на фактуриране;
+                                                              ENU=Type invoicing];
+                                                   OptionCaptionML=[BGR=В началото,Всеки месец;
+                                                                    ENU=In begining,Every Month];
+                                                   OptionString=InBegin,EveryMonth }
+    { 8   ;   ;Type Payment        ;Option        ;CaptionML=[BGR=Начин на плащане;
+                                                              ENU=Type payment];
+                                                   OptionCaptionML=[BGR=Равни главници,Равни вноски;
+                                                                    ENU=Equal Principals,Equal Payments];
+                                                   OptionString=EqPrincipal,EqPayment }
+    { 9   ;   ;Vendor Name         ;Text80         }
+    { 10  ;   ;No. Series          ;Code10         }
+    { 11  ;   ;Ext Document        ;Code20        ;CaptionML=[BGR=Външен документ No;
+                                                              ENU=External Document No] }
+    { 12  ;   ;Principal Interest %;Decimal       ;CaptionML=[BGR=Главница Лихвен %;
+                                                              ENU=Principal Interest %];
+                                                   DecimalPlaces=0:4 }
+    { 13  ;   ;Begin PayOff Date   ;Date          ;CaptionML=[BGR=Начална дата на погасителния план;
+                                                              ENU=Begin date of payoff plan] }
+    { 14  ;   ;Begin Payment Excl VAT;Decimal     ;CaptionML=[BGR=Първоначална вноска без ДДС;
+                                                              ENU=Begin Payment Excl VAT];
+                                                   AutoFormatExpr="Currency Code" }
+    { 15  ;   ;Principal Grace Period;Integer     ;CaptionML=[BGR=Главница Гратисен период (месеци);
+                                                              ENU=Principal Grace period (months)] }
+    { 16  ;   ;Principal Incl VAT  ;Decimal       ;OnValidate=BEGIN
+                                                                IF NOT IsHaveVAT(Rec) THEN
+                                                                   "Interest with VAT":=FALSE;
+                                                              END;
+
+                                                   CaptionML=[BGR=Главница с ДДС;
+                                                              ENU=Principal Incl VAT];
+                                                   AutoFormatExpr="Currency Code" }
+    { 17  ;   ;Begin Payment Incl VAT;Decimal     ;CaptionML=[BGR=Първоначална вноска с ДДС;
+                                                              ENU=Begin Payment Incl VAT];
+                                                   AutoFormatExpr="Currency Code" }
+    { 18  ;   ;VAT Period          ;Integer       ;CaptionML=[BGR=ДДС Период (месеци);
+                                                              ENU=VAT Period (months)] }
+    { 19  ;   ;VAT Grace Period    ;Integer       ;CaptionML=[BGR=ДДС Гратисен период (месеци);
+                                                              ENU=VAT Grace period (months)] }
+    { 20  ;   ;Count Begin         ;Integer       ;CaptionML=[BGR=Брой първоначални вноски;
+                                                              ENU=Count begin payments] }
+    { 22  ;   ;VAT Interest %      ;Decimal       ;CaptionML=[BGR=ДДС Лихвен %;
+                                                              ENU=VAT Interest %];
+                                                   DecimalPlaces=0:4 }
+    { 23  ;   ;Lease Status        ;Option        ;OnValidate=BEGIN
+                                                                CheckStatus;
+                                                              END;
+
+                                                   CaptionML=[BGR=Статус на договора;
+                                                              ENU=Lease status];
+                                                   OptionCaptionML=[BGR=" ,Проверена първоначална,Активен,Приключен,Предоговаряне,Анулиран,Предсрочно";
+                                                                    ENU=" ,Check Begin,Active,Closed,Reoffer,Cancelled,Earlyapyment"];
+                                                   OptionString=[ ,FillBegin,Active,Closed,Reoffer,Cancel,Early];
+                                                   Description=DIS.181 }
+    { 24  ;   ;Currency Code       ;Code10        ;TableRelation=Currency;
+                                                   CaptionML=[BGR=Валута Код;
+                                                              ENU=Currency code] }
+    { 25  ;   ;Date Modify Percent ;Date          ;OnValidate=BEGIN
+                                                                IF NOT ("Lease Status" IN ["Lease Status"::Active,
+                                                                                           "Lease Status"::Reoffer]) THEN
+                                                                   "Date Modify Percent":=xRec."Date Modify Percent";
+                                                              END;
+
+                                                   CaptionML=[BGR=Смени от дата;
+                                                              ENU=Change from date] }
+    { 26  ;   ;Global Dimension 1 Code;Code20     ;TableRelation="Dimension Value".Code WHERE (Global Dimension No.=CONST(1));
+                                                   CaptionML=[BGR=Код глобална аналитичност 1;
+                                                              ENU=Global Dimension 1 Code;
+                                                              NLD=Code globale dimensie 1;
+                                                              FRB=Code axe principal 1;
+                                                              NLB=Code globale dimensie 1];
+                                                   CaptionClass='1,1,1' }
+    { 27  ;   ;Interest with VAT   ;Boolean       ;OnValidate=BEGIN
+                                                                IF NOT IsHaveVAT(Rec) THEN
+                                                                   "Interest with VAT":=FALSE;
+                                                              END;
+
+                                                   CaptionML=[BGR=Начисли ДДС върху лихва;
+                                                              ENU=Calculate VAT over interest] }
+    { 28  ;   ;Vendor 1 No         ;Code20        ;TableRelation=Vendor;
+                                                   OnValidate=VAR
+                                                                recVendor@1400000 : Record 23;
+                                                              BEGIN
+                                                                TESTFIELD("Type Invoicing","Type Invoicing"::InBegin);
+                                                                IF recVendor.GET("Vendor 1 No") THEN
+                                                                   "Vendor 1 Name":=recVendor.Name
+                                                                ELSE
+                                                                   "Vendor 1 Name":='';
+                                                              END;
+
+                                                   CaptionML=[BGR=Доставчик 1 No;
+                                                              ENU=Vendor 1 No] }
+    { 29  ;   ;Vendor 1 Name       ;Text80         }
+    { 30  ;   ;Principal Interest Incl VAT;Decimal;FieldClass=FlowField;
+                                                   CalcFormula=Sum(PayOffplan."Interest Incl VAT" WHERE (Contract No=FIELD(Contract No),
+                                                                                                         bCancel=FILTER(No)));
+                                                   CaptionML=[BGR=Лихва с ДДС;
+                                                              ENU=Interest Incl VAT];
+                                                   Editable=No;
+                                                   AutoFormatExpr="Currency Code" }
+    { 31  ;   ;Month Filter        ;Integer       ;FieldClass=FlowFilter;
+                                                   CaptionML=[BGR=Месец Филтър;
+                                                              ENU=Month Filter] }
+    { 32  ;   ;Payment Filter      ;Option        ;FieldClass=FlowFilter;
+                                                   CaptionML=[BGR=Вид вноска;
+                                                              ENU=Payment type];
+                                                   OptionCaptionML=[BGR=Главница,Лихва,Първоначална,Услуги;
+                                                                    ENU=Principal,Interest,Begin amount,Service Amount];
+                                                   OptionString=Principal,Interest,AmtBegin,Service }
+    { 33  ;   ;In Process          ;Boolean        }
+    { 34  ;   ;No Refund           ;Boolean       ;CaptionML=[BGR=Без данъчен кредит;
+                                                              ENU=No Refund] }
+    { 35  ;   ;Vendor 2 No         ;Code20        ;TableRelation=Vendor;
+                                                   OnValidate=VAR
+                                                                recVendor@1400000 : Record 23;
+                                                              BEGIN
+                                                                IF recVendor.GET("Vendor 2 No") THEN
+                                                                   "Vendor 2 Name":=recVendor.Name
+                                                                ELSE
+                                                                   "Vendor 2 Name":='';
+                                                              END;
+
+                                                   CaptionML=[BGR=Доставчик услуги;
+                                                              ENU=Vendor services] }
+    { 36  ;   ;Vendor 2 Name       ;Text80         }
+    { 37  ;   ;No First Month      ;Integer       ;InitValue=1;
+                                                   CaptionML=[BGR=Номер на първа вноска;
+                                                              ENU=Number of first month];
+                                                   MinValue=1;
+                                                   NotBlank=Yes }
+    { 40  ;   ;Loan paid           ;Option        ;CaptionML=[BGR=Изплащане на кредита;
+                                                              ENU=Loan paid];
+                                                   OptionCaptionML=[BGR=Изплаща се в края,Изплаща се в началото,Изплаща се в началото (с лихва 1);
+                                                                    ENU=Paid of end,Paid of begining,Paid of begining (with intr 1)];
+                                                   OptionString=_end,_begin,_begin_1;
+                                                   Description=DIS.201 }
+    { 41  ;   ;Line Detail Filter  ;Integer       ;FieldClass=FlowFilter;
+                                                   TableRelation="Lease Detail"."Line No" WHERE (Contract No=FIELD(Contract No));
+                                                   CaptionML=[BGR=Филтър ред договор;
+                                                              ENU=Line Detail Filter] }
+    { 50  ;   ;Lease Type          ;Option        ;CaptionML=[BGR=Тип на лизинга;
+                                                              ENU=Lease Type];
+                                                   OptionCaptionML=[BGR=Финансов,Оперативен;
+                                                                    ENU=Finance,Operative];
+                                                   OptionString=Finance,Operative;
+                                                   Description=DIS.143 }
+  }
+  KEYS
+  {
+    {    ;Contract No                             ;Clustered=Yes }
+    {    ;Ext Document                             }
+  }
+  FIELDGROUPS
+  {
+    { 1   ;DropDown            ;Contract No,Ext Document,Vendor No,Vendor Name }
+  }
+  CODE
+  {
+    VAR
+      NoSeriesMgt@1000000003 : Codeunit 396;
+      Lsetup@1000000002 : Record 50028;
+      cunLeaseTool@1000000001 : Codeunit 50019;
+      DimMgt@1000000000 : Codeunit 408;
+      Text001@1000000006 : TextConst 'BGR=Преименуването на %1 не е възможно.;ENU=You cannot rename a %1.;NLD=U kunt een %1 niet hernoemen.;FRB=Vous ne pouvez pas renommer l''enregistrement %1.;NLB=U kunt een %1 niet hernoemen.';
+      Text002@1000000005 : TextConst 'BGR=Изтриване не е позволено;ENU=Delete is not allowed';
+      Text003@1000000004 : TextConst 'BGR=Корекцията успешна;ENU=Modified is successful';
+
+    PROCEDURE AssistEdit@2(OldContract@1000 : Record 50023) : Boolean;
+    BEGIN
+      Lsetup.GET;
+      IF NoSeriesMgt.SelectSeries(Lsetup."Lease Nos.",OldContract."No. Series","No. Series") THEN BEGIN
+        NoSeriesMgt.SetSeries("Contract No");
+        EXIT(TRUE);
+      END;
+    END;
+
+    PROCEDURE ViewBeginPayment@1400000(pRec@1400000 : Record 50023);
+    VAR
+      recPayOff@1400001 : Record 50025;
+      f@1400002 : Page 50087;
+    BEGIN
+      CLEAR(f);
+      recPayOff.RESET;
+      recPayOff.SETCURRENTKEY(bCancel,"Contract No","Contract Line",Month,"Amount Type");
+      recPayOff.FILTERGROUP(2);
+      recPayOff.SETRANGE("Contract No",pRec."Contract No");
+      recPayOff.SETRANGE("Contract Line",0);
+      recPayOff.SETRANGE(bCancel,FALSE);
+      recPayOff.FILTERGROUP(0);
+      f.SETTABLEVIEW(recPayOff);
+      f.SetEditable(TRUE);
+      f.RUNMODAL;
+    END;
+
+    PROCEDURE CheckStatus@1400001();
+    VAR
+      decTotalIncl@1400000 : Decimal;
+      recPayOff@1400001 : Record 50025;
+      lText001@1400002 : TextConst 'BGR=Първоначалната вноска в договора %1 е различна от тази в погасителния план %2;ENU=Begin payment in contract %1 is difference from pay off plan %2';
+      recDetail@1400003 : Record 50024;
+      lText002@1400004 : TextConst 'BGR=Няма детайли в договора;ENU=No details in contract';
+      lText003@1400005 : TextConst 'BGR=Липсва погасителен план;ENU=Missing pay off plan';
+      lText004@1400006 : TextConst 'BGR=Има липсващи дата падеж;ENU=Missing Due dates';
+      lText005@1400007 : TextConst 'BGR=Сумата на договора след първоначална вноска %1 е различна от тази по редовете %2;ENU=Total Amount in contract after begin payment %1 is difference from lines %2';
+      decIncl@1400008 : Decimal;
+      decTotalExcl@1400009 : Decimal;
+      decExcl@1400010 : Decimal;
+      lText006@1400011 : TextConst 'BGR=Желаете ли да анулирате лизинговия договора ?;ENU=Do You want to cancelled lease contract ?';
+      lText007@1400012 : TextConst 'BGR=Желаете ли да приключите лизинговия договора ?;ENU=Do You want to closed lease contract ?';
+      lText008@50000 : TextConst 'BGR=Желаете ли предсрочно погасяване на лизинговия договор ?;ENU=Do You want to pay early lease contract ?';
+    BEGIN
+      CASE "Lease Status" OF
+         "Lease Status"::FillBegin : BEGIN
+            IF ("Begin Payment Incl VAT">0) OR ("Begin Payment Excl VAT">0) THEN BEGIN
+               TESTFIELD("Count Begin");
+               recPayOff.RESET;
+               recPayOff.SETCURRENTKEY(bCancel,"Contract No","Contract Line",Month,"Amount Type");
+               recPayOff.SETRANGE("Contract No","Contract No");
+               recPayOff.SETRANGE("Contract Line",0);
+               recPayOff.SETRANGE("Amount Type",recPayOff."Amount Type"::AmtBegin);
+               recPayOff.SETRANGE(bCancel,FALSE);
+               recPayOff.CALCSUMS("Principal Incl VAT","Principal Excl VAT");
+               decTotalIncl:=recPayOff."Principal Incl VAT";
+               decTotalExcl:=recPayOff."Principal Excl VAT";
+               IF "Begin Payment Incl VAT"<>decTotalIncl THEN
+                  ERROR(lText001,"Begin Payment Incl VAT",decTotalIncl);
+               IF "Begin Payment Excl VAT"<>decTotalExcl THEN
+                  ERROR(lText001,"Begin Payment Excl VAT",decTotalExcl);
+            END;
+          END;
+         "Lease Status"::Active : BEGIN
+            recDetail.RESET;
+            recDetail.SETRANGE("Contract No","Contract No");
+            IF NOT recDetail.FIND('-') THEN
+               ERROR(lText002);
+
+            recDetail.CALCSUMS("Principal Excl VAT","Principal Incl VAT");
+            decTotalExcl:=recDetail."Principal Excl VAT";
+            decTotalIncl:=recDetail."Principal Incl VAT";
+            decIncl:="Principal Incl VAT"-"Begin Payment Incl VAT";
+            decExcl:="Principal Excl VAT"-"Begin Payment Excl VAT";
+            IF decExcl<>decTotalExcl THEN
+               ERROR(lText005,decExcl,decTotalExcl);
+
+            IF decIncl<>decTotalIncl THEN
+               ERROR(lText005,decIncl,decTotalIncl);
+
+            CALCFIELDS("Principal Interest Excl VAT");
+            TESTFIELD("Principal Interest Excl VAT");
+
+            recPayOff.SETCURRENTKEY(bCancel,"Contract No","Contract Line",Month,"Amount Type");
+            recPayOff.SETRANGE("Contract No","Contract No");
+            recPayOff.SETRANGE(bCancel,FALSE);
+            IF NOT recPayOff.FIND('-') THEN
+               ERROR(lText003);
+            recPayOff.SETRANGE("Due date",0D);
+            IF recPayOff.FIND('-') THEN
+               ERROR(lText004);
+
+          END;
+         "Lease Status"::Cancel :
+            IF NOT CONFIRM(lText006,FALSE) THEN
+               "Lease Status":=xRec."Lease Status";
+         "Lease Status"::Closed :
+            IF NOT CONFIRM(lText007,FALSE) THEN
+               "Lease Status":=xRec."Lease Status";
+      //19.12.2017 - krasi
+         "Lease Status"::Early :
+            IF NOT CONFIRM(lText008,FALSE) THEN
+               "Lease Status":=xRec."Lease Status";
+      //
+      END;
+    END;
+
+    PROCEDURE CorrectInterest@1400002();
+    VAR
+      recDetail@1400000 : Record 50024;
+      iMonth@1400001 : Integer;
+      iTemp@1400002 : Integer;
+    BEGIN
+      recDetail.RESET;
+      recDetail.SETRANGE("Contract No","Contract No");
+      IF recDetail.FIND('-') THEN
+         REPEAT
+            iTemp:=cunLeaseTool.CalcPayOffPlan(recDetail,Rec,0,TRUE,FALSE);
+            IF recDetail."Vehicle Type"<>recDetail."Vehicle Type"::Service THEN
+               iMonth:=iTemp;
+            cunLeaseTool.CalcPayOffPlan(recDetail,Rec,1,TRUE,FALSE);
+            cunLeaseTool.CalcPayOffPlan(recDetail,Rec,3,TRUE,FALSE);
+            cunLeaseTool.CalcPayOffPlan(recDetail,Rec,4,TRUE,FALSE);
+         UNTIL recDetail.NEXT=0;
+      UpdateCostLine("Contract No",iMonth,Rec);
+      MESSAGE(Text003);
+    END;
+
+    PROCEDURE IsHaveVATplan@1400003(pRec@1400000 : Record 50023) : Boolean;
+    BEGIN
+      IF (pRec."Type Invoicing"=pRec."Type Invoicing"::InBegin) AND
+         (pRec."Principal Incl VAT"-pRec."Principal Excl VAT">0) THEN
+         EXIT(TRUE)
+      ELSE
+         EXIT(FALSE);
+    END;
+
+    PROCEDURE ValidateShortcutDimCode@1400004();
+    BEGIN
+      DimMgt.ValidateDimValueCode(1,"Global Dimension 1 Code");
+      DimMgt.SaveDefaultDim(DATABASE::"Lease Header","Contract No",1,"Global Dimension 1 Code");
+      cunLeaseTool.UpdateGlobalDim(DATABASE::"Lease Header",
+                                   "Contract No",0,
+                                   "Global Dimension 1 Code",
+                                   "Date Modify Percent");
+    END;
+
+    PROCEDURE IsHaveVAT@1400005(pRec@1400000 : Record 50023) : Boolean;
+    BEGIN
+      IF (pRec."Principal Incl VAT"-pRec."Principal Excl VAT">0) THEN
+         EXIT(TRUE)
+      ELSE
+         EXIT(FALSE);
+    END;
+
+    PROCEDURE IsHaveIntVAT@1400006(pRec@1400000 : Record 50023) : Boolean;
+    BEGIN
+      EXIT(pRec."Interest with VAT");
+    END;
+
+    PROCEDURE GetContractNum@1400007(pCode@1400000 : Code[20]) : Code[20];
+    BEGIN
+      IF GET(pCode) THEN
+         EXIT("Ext Document")
+      ELSE
+         EXIT('');
+    END;
+
+    PROCEDURE GetGlobalDim@1400008(pCode@1400000 : Code[20]) : Code[20];
+    BEGIN
+      IF GET(pCode) THEN
+         EXIT("Global Dimension 1 Code")
+      ELSE
+         EXIT('');
+    END;
+
+    PROCEDURE UpdateCostLine@1400009(pContract@1400000 : Code[20];pMonth@1400001 : Integer;pRec@1400017 : Record 50023);
+    VAR
+      ltext001@1400002 : TextConst 'BGR="Има направено плащане. Действието преустановено. /%1=%2/";ENU="There are payment. Action is cancelled. /%1=%2/"';
+      recCostApply@1400005 : Record 2002967;
+      decInAmt@1400004 : Decimal;
+      decExAmt@1400011 : Decimal;
+      decFactor@1400003 : Decimal;
+      recLeaseApply@1400006 : Record 50027;
+      recPay@1400007 : Record 50025;
+      ltext002@1400008 : TextConst 'BGR=Частично фактурирано. Действието преустановено;ENU=Part invoiced. Action cancelled';
+      decExcl@1400009 : Decimal;
+      decIncl@1400010 : Decimal;
+      ltext003@1400012 : TextConst 'BGR="Ред %1=%2 става отрицателен.  Действието преустановено";ENU="Line %1=%2 become negative. Action cancelled"';
+      recLeaseBuf@1400013 : Record 50027;
+      decAmount@1400015 : Decimal;
+      bolWithVatPlan@1400016 : Boolean;
+      bolOK@1400014 : Boolean;
+      ltext004@1400018 : TextConst 'BGR="Ред %1=%2 става положителен.  Действието преустановено";ENU="Line %1=%2 become positive. Action cancelled"';
+    BEGIN
+      bolWithVatPlan:=IsHaveVATplan(pRec);
+      recLeaseApply.RESET;
+      recLeaseApply.SETCURRENTKEY(Type,"Payplan Entry");
+      recCostApply.RESET;
+      recCostApply.SETCURRENTKEY("Lease Apply Entry");
+
+      recPay.RESET;
+      recPay.SETCURRENTKEY(bCancel,"Contract No",Month,"Amount Type");
+      recPay.SETRANGE("Contract No",pContract);
+      recPay.SETRANGE(bCancel,FALSE);
+      recPay.SETFILTER(Month,'>=%1',pMonth);
+      recPay.SETFILTER("Amount Type",'%1|%2|%3|%4',recPay."Amount Type"::Amount,
+                                                   recPay."Amount Type"::VAT,
+                                                   recPay."Amount Type"::Service,
+                                                   recPay."Amount Type"::ServVAT);
+      IF recPay.FIND('-') THEN
+         REPEAT
+            recPay.CALCFIELDS("Inv Principal Excl VAT","Inv Principal Incl VAT");
+            decIncl:=recPay."Principal Incl VAT"-recPay."Inv Principal Incl VAT";
+            decExcl:=recPay."Principal Excl VAT"-recPay."Inv Principal Excl VAT";
+            IF NOT recPay."Invoiced Principal" AND (recPay."Inv Principal Excl VAT"<>0) THEN
+               ERROR(ltext002);
+
+            recLeaseApply.SETRANGE("Payplan Entry",recPay."Entry No");
+            IF recLeaseApply.FIND('+') THEN
+               REPEAT
+                  recCostApply.SETRANGE("Lease Apply Entry",recLeaseApply."Entry No");
+                  IF recCostApply.FIND('-') THEN BEGIN
+                     IF recCostApply."Current Payed"<>0 THEN BEGIN
+                        IF recCostApply."Current Payed"=recCostApply."Total Incl. VAT" THEN
+                           bolOK:=FALSE
+                        ELSE
+                           ERROR(ltext001,recCostApply.FIELDCAPTION("Lease Apply Entry"),recLeaseApply."Entry No");
+                     END ELSE
+                        bolOK:=TRUE;
+                  END ELSE
+                     bolOK:=TRUE;
+                  IF bolOK THEN BEGIN
+                     decInAmt:=recLeaseApply."Amount Incl VAT"+decIncl;
+                     decExAmt:=recLeaseApply."Amount Excl VAT"+decExcl;
+                     CASE recLeaseApply."Document Type" OF
+                        recLeaseApply."Document Type"::Invoice,recLeaseApply."Document Type"::"Post Inv" :
+                           IF (decInAmt<0) OR (decExAmt<0) THEN
+                              ERROR(ltext003,recLeaseApply.FIELDCAPTION("Entry No"),recLeaseApply."Entry No");
+                        ELSE
+                           IF (decInAmt>0) OR (decExAmt>0) THEN
+                              ERROR(ltext004,recLeaseApply.FIELDCAPTION("Entry No"),recLeaseApply."Entry No");
+                     END;
+                     recLeaseApply."Amount Incl VAT":=decInAmt;
+                     recLeaseApply."Amount Excl VAT":=decExAmt;
+                     recLeaseApply.MODIFY;
+                     IF recPay."Amount Type" IN [recPay."Amount Type"::Amount,recPay."Amount Type"::Service] THEN
+                        decFactor:=recLeaseApply.PaymentFactor(recLeaseApply."Entry No",decExAmt,TRUE);
+
+                     IF (bolWithVatPlan AND (recPay."Amount Type" IN [recPay."Amount Type"::ServVAT,
+                                                                      recPay."Amount Type"::VAT])) OR
+                        (NOT bolWithVatPlan AND (recPay."Amount Type" IN [recPay."Amount Type"::Amount,
+                                                                          recPay."Amount Type"::Service])) THEN BEGIN
+                        decAmount:=recLeaseBuf.PaymentInclVAT(recLeaseApply."Entry No");
+      //                  recCostApply.RESET;
+      //                  recCostApply.SETCURRENTKEY("Lease Apply Entry");
+      //                  recCostApply.SETRANGE("Lease Apply Entry",recLeaseApply."Entry No");
+      //                  IF recCostApply.FIND('-') THEN BEGIN
+      //                     IF recCostApply."Current Payed (LCY)"<>0 THEN
+      //                        ERROR(ltext001,recCostApply.FIELDCAPTION("Lease Apply Entry"),recLeaseApply."Entry No");
+                           recCostApply."Total Incl. VAT":=decAmount;
+                           recCostApply."Total Incl. VAT (LCY)":=decAmount/decFactor;
+                           recCostApply.MODIFY;
+      //                  END;
+                     END;
+                  END;
+               UNTIL (recLeaseApply.NEXT(-1)=0);
+
+      UNTIL recPay.NEXT=0;
+    END;
+
+    PROCEDURE CheckClosed@1400010() : Boolean;
+    VAR
+      recPay@1400000 : Record 50025;
+      lrecTemp@1400001 : Record 50025;
+    BEGIN
+      recPay.RESET;
+      recPay.SETCURRENTKEY(bCancel,Open,"Due date","Contract No");
+      recPay.SETRANGE("Contract No","Contract No");
+      IF recPay.FINDSET THEN
+         REPEAT
+            IF recPay.Open THEN BEGIN
+               recPay.CheckInvoiced(recPay."Entry No",0,FALSE,TRUE);
+               recPay.CheckInvoiced(recPay."Entry No",1,FALSE,TRUE);
+               recPay.CheckPayed(recPay."Entry No",0,FALSE,TRUE);
+               recPay.CheckPayed(recPay."Entry No",1,FALSE,TRUE);
+      //18.10.2012 - krasi
+               recPay.CheckPayedInvoiced(recPay."Entry No",0,TRUE);
+               recPay.CheckPayedInvoiced(recPay."Entry No",1,TRUE);
+            END;
+      //09.04.2012 - krasi
+            IF "Date Modify Percent"<=recPay."Due date" THEN
+               IF lrecTemp.GET(recPay."Entry No") THEN BEGIN
+                  lrecTemp.Closed:=TRUE;
+                  lrecTemp.MODIFY;
+               END;
+         UNTIL recPay.NEXT=0;
+      recPay.SETRANGE(Open,TRUE);
+      EXIT(NOT recPay.FINDFIRST);
+    END;
+
+    PROCEDURE IsNoRefund@1400011(pRec@1400000 : Record 50023) : Boolean;
+    BEGIN
+      EXIT(pRec."No Refund");
+    END;
+
+    PROCEDURE UpdateVendor@1400012();
+    VAR
+      recPayPlan@1400000 : Record 50025;
+    BEGIN
+      recPayPlan.RESET;
+      recPayPlan.SETCURRENTKEY(bCancel,"Contract No",Month,"Amount Type");
+      recPayPlan.SETRANGE("Contract No","Contract No");
+      recPayPlan.MODIFYALL("Vendor No","Vendor No",FALSE);
+    END;
+
+    PROCEDURE AfterVatPeriod@1400013(piMonth@1400000 : Integer) : Boolean;
+    BEGIN
+      IF "Principal Period">"VAT Period" THEN
+         IF piMonth<="VAT Period" THEN
+            EXIT(FALSE)
+         ELSE
+            EXIT(TRUE);
+      EXIT(FALSE);
+    END;
+
+    PROCEDURE CancelPayOff@1400014() : Integer;
+    VAR
+      recPay@1400000 : Record 50025;
+      iMonth@1400001 : Integer;
+    BEGIN
+      iMonth:=cunLeaseTool.GetMonthAll("Contract No","Date Modify Percent")+1;
+      recPay.LOCKTABLE;
+      recPay.RESET;
+      recPay.SETCURRENTKEY(bCancel,"Contract No",Month,"Amount Type");
+      recPay.SETRANGE("Contract No","Contract No");
+      recPay.SETFILTER(Month,'>=%1',iMonth);
+      recPay.SETRANGE(bCancel,FALSE);
+      recPay.MODIFYALL(Open,FALSE);
+      recPay.MODIFYALL(bCancel,TRUE,TRUE);
+      EXIT(iMonth);
+    END;
+
+    PROCEDURE RebuildPlan@1400015();
+    VAR
+      iMonth@1400000 : Integer;
+      recDetail@1400002 : Record 50024;
+    BEGIN
+      iMonth:=CancelPayOff;
+      UpdateLastPayment;
+      cunLeaseTool.GeneratePayOffPlan(Rec,0,iMonth,TRUE);
+      cunLeaseTool.GeneratePayOffPlan(Rec,1,iMonth,TRUE);
+
+      recDetail.RESET;
+      recDetail.SETRANGE("Contract No","Contract No");
+      IF recDetail.FINDSET THEN
+         REPEAT
+            cunLeaseTool.CalcPayOffPlan(recDetail,Rec,0,TRUE,TRUE);
+            cunLeaseTool.CalcPayOffPlan(recDetail,Rec,1,TRUE,TRUE);
+            cunLeaseTool.CalcPayOffPlan(recDetail,Rec,3,TRUE,TRUE);
+            cunLeaseTool.CalcPayOffPlan(recDetail,Rec,4,TRUE,TRUE);
+         UNTIL recDetail.NEXT=0;
+      MESSAGE(Text003);
+    END;
+
+    PROCEDURE UpdateLastPayment@1400016();
+    VAR
+      lText004@1400000 : TextConst 'BGR=Липсва главница за %1;ENU=Missing principal for %1';
+      recDetail@1400001 : Record 50024;
+      recLeaseAmt@1400002 : Record 50026;
+    BEGIN
+      recDetail.RESET;
+      recDetail.SETRANGE("Contract No","Contract No");
+      IF recDetail.FINDSET THEN
+         REPEAT
+            IF recLeaseAmt.GET(recDetail."Contract No",recDetail."Vehicle Type") THEN BEGIN
+               recDetail."Last Payment Excl VAT":=recLeaseAmt."Last Payment Excl VAT";
+               recDetail."Last Payment Incl VAT":=recLeaseAmt."Last Payment Incl VAT";
+               recDetail.MODIFY;
+            END ELSE
+               ERROR(lText004,recDetail."Vehicle Type");
+         UNTIL recDetail.NEXT=0;
+    END;
+
+    PROCEDURE UpdateDueDate@1400017();
+    VAR
+      iMonth@1400000 : Integer;
+    BEGIN
+      iMonth:=cunLeaseTool.GetMonthDue("Contract No","Date Modify Percent")+1;
+      cunLeaseTool.GeneratePayOffPlan(Rec,1,iMonth,TRUE);
+      MESSAGE(Text003);
+    END;
+
+    PROCEDURE GetAccount@1000000000(pCode@1000000000 : Code[20];pType@1000000002 : 'principal,interest,service') : Code[20];
+    VAR
+      lrecLSetup@1000000001 : Record 50028;
+    BEGIN
+      //31.01.2017 - krasi
+      lrecLSetup.GET;
+      IF GET(pCode) THEN
+         CASE "Lease Type" OF
+            "Lease Type"::Finance :
+               CASE pType OF
+                  pType::principal :
+                     EXIT(lrecLSetup."Account Principal");
+                  pType::interest :
+                     EXIT(lrecLSetup."Account Interest");
+                  pType::service :
+                     EXIT(lrecLSetup."Account Principal Other");
+               END;
+            "Lease Type"::Operative :
+               CASE pType OF
+                  pType::principal :
+                     EXIT(lrecLSetup."Operative Account Principal");
+                  pType::interest :
+                     EXIT(lrecLSetup."Operative Account Interest");
+                  pType::service :
+                     EXIT(lrecLSetup."Operative Acc Principal Other");
+               END;
+         END
+      ELSE
+         EXIT('');
+    END;
+
+    PROCEDURE EarlyPayOff@50001() : Integer;
+    VAR
+      recPay@50001 : Record 50025;
+      iMonth@50000 : Integer;
+      iEndMonth@50002 : Integer;
+      TempDate@50003 : Date;
+    BEGIN
+      //14.11.2017 - krasi
+      TempDate:="Date Modify Percent";
+      IF TempDate=0D THEN
+        "Date Modify Percent":=CALCDATE('<1D>',"Begin PayOff Date");
+      iEndMonth:=CancelPayOff-1;
+      "Date Modify Percent":=TempDate;
+      iMonth:=cunLeaseTool.GetMonthAllEarly("Contract No","Begin PayOff Date")+1;
+      recPay.LOCKTABLE;
+      recPay.RESET;
+      recPay.SETCURRENTKEY(Early,"Contract No",Month,"Amount Type");
+      recPay.SETRANGE("Contract No","Contract No");
+      recPay.SETRANGE(Month,iMonth,iEndMonth);
+      recPay.SETRANGE(Early,FALSE);
+      //recPay.MODIFYALL(Open,FALSE);
+      recPay.MODIFYALL(Early,TRUE,TRUE);
+      EXIT(iMonth);
+      //
+    END;
+
+    PROCEDURE CheckEarly@50003() : Boolean;
+    VAR
+      recPay@50000 : Record 50025;
+      lrecTemp@50001 : Record 50025;
+    BEGIN
+      //14.11.2017 - krasi
+      recPay.RESET;
+      recPay.SETCURRENTKEY(bCancel,Open,"Due date","Contract No");
+      recPay.SETRANGE("Contract No","Contract No");
+      recPay.SETRANGE(bCancel,FALSE);
+      IF recPay.FINDSET THEN
+         REPEAT
+            IF recPay.Open THEN BEGIN
+               recPay.CheckInvoiced(recPay."Entry No",0,FALSE,TRUE);      //0 - principal
+               recPay.CheckPayed(recPay."Entry No",0,FALSE,TRUE);         //0 - principal
+               recPay.CheckPayedInvoiced(recPay."Entry No",0,TRUE);       //0 - principal
+            END;
+            IF lrecTemp.GET(recPay."Entry No") THEN BEGIN
+               lrecTemp.Closed:=TRUE;
+               lrecTemp.MODIFY;
+            END;
+         UNTIL recPay.NEXT=0;
+      recPay.SETRANGE(Open,TRUE);
+      EXIT(NOT recPay.FINDFIRST);
+      //
+    END;
+
+    PROCEDURE SetOpenFalsePayPlan@50000();
+    VAR
+      lrecPayPlan@50000 : Record 50025;
+    BEGIN
+      TESTFIELD("Lease Status","Lease Status"::Active);
+      lrecPayPlan.RESET;
+      lrecPayPlan.SETCURRENTKEY(bCancel,"Contract No",Month,"Amount Type");
+      lrecPayPlan.SETRANGE(bCancel,TRUE);
+      lrecPayPlan.SETRANGE("Contract No","Contract No");
+      lrecPayPlan.MODIFYALL(Open,FALSE);
+      MESSAGE('OK');
+    END;
+
+    PROCEDURE GetDefLeaseDimension@50002(pDimCode@50000 : Code[20]) : Code[20];
+    VAR
+      recDimDef@50001 : Record 352;
+    BEGIN
+      IF NOT recDimDef.GET(DATABASE::"Lease Header","Contract No",pDimCode) THEN recDimDef.INIT;
+      EXIT(recDimDef."Dimension Value Code");
+    END;
+
+    BEGIN
+    {
+      //31.01.2017 - krasi - [DIS143]
+        add field "lease type"
+        add function getaccount
+
+      //14.11.2017- krasi - [DIS181]
+        add new option in Lease Status "Early"
+      //19.12.2017 - krasi
+        add check
+
+      //19.06.2018 - krasi - [DIS201]
+        add option (_begin_1)
+    }
+    END.
+  }
+}
+
+OBJECT Table 50024 Lease Detail
+{
+  OBJECT-PROPERTIES
+  {
+    Date=13.03.18;
+    Time=12:11:47;
+    Modified=Yes;
+    Version List=DIS_LIZ;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+
+               TESTFIELD("Contract No");
+               IF cunLeaseTool.GetStatusAction("Contract No",0,0)=0 THEN
+                  ERROR(Text003);
+               recDetail.RESET;
+               recDetail.SETRANGE("Contract No","Contract No");
+               IF recDetail.FIND('+') THEN
+                  "Line No":=recDetail."Line No"+1
+               ELSE
+                  "Line No":=1;
+               "Global Dimension 1 Code":=recHdr.GetGlobalDim("Contract No");
+             END;
+
+    OnModify=BEGIN
+
+               IF cunLeaseTool.GetStatusAction("Contract No",1,0)=0 THEN
+                  ERROR(Text004);
+               IF "FA No"<>xRec."FA No" THEN
+                  UpdateFA;
+             END;
+
+    OnDelete=VAR
+               recPayOff@1000000000 : Record 50025;
+             BEGIN
+
+               IF cunLeaseTool.GetStatusAction("Contract No",2,0)=0 THEN
+                  ERROR(Text002);
+               recPayOff.RESET;
+               recPayOff.SETCURRENTKEY(bCancel,"Contract No","Contract Line");
+               recPayOff.SETRANGE("Contract No","Contract No");
+               recPayOff.SETRANGE("Contract Line","Line No");
+               recPayOff.DELETEALL;
+             END;
+
+    OnRename=BEGIN
+               ERROR(Text001,TABLECAPTION);
+             END;
+
+    CaptionML=[BGR=Лизинг детайлна таблица;
+               ENU=Lease Detail table];
+    LookupPageID=Page50047;
+    DrillDownPageID=Page50047;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Contract No         ;Code20        ;TableRelation="Lease Header";
+                                                   CaptionML=[BGR=Договор No;
+                                                              ENU=Contract No] }
+    { 2   ;   ;Line No             ;Integer       ;CaptionML=[BGR=Ред No;
+                                                              ENU=Line No] }
+    { 3   ;   ;Vehicle Type        ;Option        ;CaptionML=[BGR=Тип превозно средство;
+                                                              ENU=Vehicle type];
+                                                   OptionCaptionML=[BGR=Влекач,Ремарке,Вагон,Услуги,Леки коли,Други;
+                                                                    ENU=Truck,Trailer,Wagon,Service,Auto,Other];
+                                                   OptionString=Truck,Trailer,Wagon,Service,Auto,Other }
+    { 4   ;   ;Vehicle No          ;Code20        ;TableRelation=IF (Vehicle Type=FILTER(Truck|Auto)) Vehicle."Code Vehicle"
+                                                                 ELSE IF (Vehicle Type=CONST(Trailer)) Trailer."Code Trailer"
+                                                                 ELSE IF (Vehicle Type=CONST(Wagon)) Wagons."Wagon No."
+                                                                 ELSE IF (Vehicle Type=CONST(Service)) "G/L Account".No.;
+                                                   OnValidate=VAR
+                                                                recTruck@1400000 : Record 2002615;
+                                                                recTrailer@1400001 : Record 2002616;
+                                                              BEGIN
+                                                                CASE "Vehicle Type" OF
+                                                                   "Vehicle Type"::Truck,"Vehicle Type"::Auto :
+                                                                      IF recTruck.GET("Vehicle No") THEN
+                                                                         "Number plate":=recTruck."Number plate"
+                                                                      ELSE
+                                                                         "Number plate":='';
+                                                                   "Vehicle Type"::Trailer :
+                                                                      IF recTrailer.GET("Vehicle No") THEN
+                                                                         "Number plate":=recTrailer."Number plate"
+                                                                      ELSE
+                                                                         "Number plate":='';
+                                                                END;
+                                                              END;
+
+                                                   CaptionML=[BGR=Превозно средство;
+                                                              ENU=Vehicle No] }
+    { 5   ;   ;Number plate        ;Code10        ;CaptionML=[BGR=Регистрационен номер;
+                                                              ENU=Number plate];
+                                                   Editable=No }
+    { 6   ;   ;Principal Excl VAT  ;Decimal       ;CaptionML=[BGR=Главница след първоначална без ДДС;
+                                                              ENU=Principal after begining Excl VAT];
+                                                   Editable=No;
+                                                   AutoFormatExpr=GetCurrencyCode }
+    { 7   ;   ;Principal Interest Excl VAT;Decimal;FieldClass=FlowField;
+                                                   CalcFormula=Sum(PayOffplan."Interest Excl VAT" WHERE (Contract No=FIELD(Contract No),
+                                                                                                         Contract Line=FIELD(Line No),
+                                                                                                         bCancel=FILTER(No)));
+                                                   CaptionML=[BGR=Лихва без ДДС;
+                                                              ENU=Interest Excl VAT];
+                                                   Editable=No;
+                                                   AutoFormatExpr=GetCurrencyCode }
+    { 8   ;   ;FA No               ;Code20        ;TableRelation=IF (Vehicle Type=FILTER(<>Service)) "Fixed Asset".No.;
+                                                   CaptionML=[BGR=Дълготраен актив No;
+                                                              ENU=Fixed Asset No] }
+    { 9   ;   ;Principal Incl VAT  ;Decimal       ;CaptionML=[BGR=Главница след първоначална с ДДС;
+                                                              ENU=Principal after begining Incl VAT];
+                                                   Editable=No;
+                                                   AutoFormatExpr=GetCurrencyCode }
+    { 12  ;   ;Global Dimension 1 Code;Code20     ;TableRelation="Dimension Value".Code WHERE (Global Dimension No.=CONST(1));
+                                                   OnValidate=BEGIN
+                                                                ValidateShortcutDimCode(1,"Global Dimension 1 Code");
+                                                              END;
+
+                                                   CaptionML=[BGR=Код глобална аналитичност 1;
+                                                              ENU=Global Dimension 1 Code;
+                                                              NLD=Code globale dimensie 1;
+                                                              FRB=Code axe principal 1;
+                                                              NLB=Code globale dimensie 1];
+                                                   CaptionClass='1,1,1' }
+    { 13  ;   ;DateModify          ;Date          ;CaptionML=[BGR=Дата за модификация;
+                                                              ENU=Date for modify] }
+    { 14  ;   ;Principal Interest Incl VAT;Decimal;FieldClass=FlowField;
+                                                   CalcFormula=Sum(PayOffplan."Interest Incl VAT" WHERE (Contract No=FIELD(Contract No),
+                                                                                                         Contract Line=FIELD(Line No),
+                                                                                                         bCancel=FILTER(No)));
+                                                   CaptionML=[BGR=Лихва с ДДС;
+                                                              ENU=Interest Incl VAT];
+                                                   Editable=No;
+                                                   AutoFormatExpr=GetCurrencyCode }
+    { 15  ;   ;Last Payment Excl VAT;Decimal      ;CaptionML=[BGR=Последна вноска без ДДС;
+                                                              ENU=Last Payment Excl VAT];
+                                                   Editable=No;
+                                                   AutoFormatExpr=GetCurrencyCode }
+    { 16  ;   ;Last Payment Incl VAT;Decimal      ;CaptionML=[BGR=Последна вноска с ДДС;
+                                                              ENU=Last Payment Incl VAT];
+                                                   Editable=No;
+                                                   AutoFormatExpr=GetCurrencyCode }
+  }
+  KEYS
+  {
+    {    ;Contract No,Line No                     ;SumIndexFields=Principal Excl VAT,Principal Incl VAT;
+                                                   Clustered=Yes }
+    {    ;Contract No,Vehicle Type                 }
+  }
+  FIELDGROUPS
+  {
+    { 1   ;DropDown            ;Vehicle No,Number plate,FA No            }
+  }
+  CODE
+  {
+    VAR
+      recDetail@1000000002 : Record 50024;
+      cunLeaseTool@1000000001 : Codeunit 50019;
+      recHdr@1000000000 : Record 50023;
+      Text001@1000000006 : TextConst 'BGR=Преименуването на %1 не е възможно.;ENU=You cannot rename a %1.;NLD=U kunt een %1 niet hernoemen.;FRB=Vous ne pouvez pas renommer l''enregistrement %1.;NLB=U kunt een %1 niet hernoemen.';
+      Text003@1000000005 : TextConst 'BGR=Статуса на договора не позволява вмъкване;ENU=Lease status do not allow insert';
+      Text004@1000000004 : TextConst 'BGR=Статуса на договора не позволява промяна;ENU=Lease status do not allow modify';
+      Text002@1000000003 : TextConst 'BGR=Статуса на договора не позволява изтриване;ENU=Lease status do not allow delete';
+
+    PROCEDURE ShowPayOff@1400000(pDetail@1400000 : Record 50024;pType@1400003 : Option);
+    VAR
+      recPayOff@1400002 : Record 50025;
+      f@1000000000 : Page 50087;
+    BEGIN
+      CLEAR(f);
+      IF "Vehicle Type"="Vehicle Type"::Service THEN
+         CASE pType OF
+            0 : pType:=3;
+            1 : pType:=4;
+         END;
+
+      recPayOff.RESET;
+      recPayOff.SETCURRENTKEY(bCancel,"Contract No","Contract Line");
+      recPayOff.FILTERGROUP(2);
+      recPayOff.SETRANGE("Contract No",pDetail."Contract No");
+      recPayOff.SETRANGE("Contract Line",pDetail."Line No");
+      recPayOff.SETRANGE("Amount Type",pType);
+      recPayOff.SETRANGE(bCancel,FALSE);
+      recPayOff.FILTERGROUP(0);
+      f.SETTABLEVIEW(recPayOff);
+      f.RUNMODAL;
+    END;
+
+    PROCEDURE ValidateShortcutDimCode@1400004(pNoDim@1400000 : Integer;pCode@1400001 : Code[20]);
+    BEGIN
+      cunLeaseTool.UpdateGlobalDim(DATABASE::"Lease Detail","Contract No","Line No",pCode,DateModify);
+    END;
+
+    PROCEDURE GetCurrencyCode@1() : Code[10];
+    VAR
+      SalesShptHeader@1000 : Record 110;
+    BEGIN
+      IF ("Contract No" = recHdr."Contract No") THEN
+         EXIT(recHdr."Currency Code")
+      ELSE
+        IF recHdr.GET("Contract No") THEN
+           EXIT(recHdr."Currency Code")
+        ELSE
+           EXIT('');
+    END;
+
+    PROCEDURE UpdateFA@1400012();
+    VAR
+      recPayPlan@1400000 : Record 50025;
+    BEGIN
+      recPayPlan.RESET;
+      recPayPlan.SETCURRENTKEY(bCancel,"Contract No","Contract Line",Month,"Amount Type");
+      recPayPlan.SETRANGE("Contract No","Contract No");
+      recPayPlan.SETRANGE("Contract Line","Line No");
+      recPayPlan.MODIFYALL("FA No","FA No",FALSE);
+    END;
+
+    PROCEDURE ShowCancelPayOff@1400001(pDetail@1400000 : Record 50024;pType@1400003 : Option);
+    VAR
+      recPayOff@1400002 : Record 50025;
+      f@1000000000 : Page 50087;
+    BEGIN
+      CLEAR(f);
+      IF "Vehicle Type"="Vehicle Type"::Service THEN
+         CASE pType OF
+            0 : pType:=3;
+            1 : pType:=4;
+         END;
+
+      recPayOff.RESET;
+      recPayOff.SETCURRENTKEY(bCancel,"Contract No","Contract Line");
+      recPayOff.FILTERGROUP(2);
+      recPayOff.SETRANGE("Contract No",pDetail."Contract No");
+      recPayOff.SETRANGE("Contract Line",pDetail."Line No");
+      recPayOff.SETRANGE("Amount Type",pType);
+      recPayOff.SETRANGE(bCancel,TRUE);
+      recPayOff.FILTERGROUP(0);
+      f.SETTABLEVIEW(recPayOff);
+      f.RUNMODAL;
+    END;
+
+    BEGIN
+    END.
+  }
+}
+
+OBJECT Table 50025 PayOffplan
+{
+  OBJECT-PROPERTIES
+  {
+    Date=11.12.20;
+    Time=17:21:53;
+    Modified=Yes;
+    Version List=DIS_LIZ,DIS.181;
+  }
+  PROPERTIES
+  {
+    OnInsert=VAR
+               recPayOff@1000000000 : Record 50025;
+             BEGIN
+               TESTFIELD("Contract No");
+               IF "Amount Type"<>"Amount Type"::AmtBegin THEN
+                  TESTFIELD("Contract Line");
+               recPayOff.RESET;
+               IF recPayOff.FINDLAST THEN
+                  "Entry No":=recPayOff."Entry No"+1
+               ELSE
+                  "Entry No":=1;
+               "Global Dimension 1 Code":=recHdr.GetGlobalDim("Contract No");
+             END;
+
+    OnModify=VAR
+               recApply@1000000000 : Record 50027;
+               Text001@1000000001 : TextConst 'BGR=Не може да се променя;ENU=Do not modify';
+             BEGIN
+
+               IF bCancel<>xRec.bCancel THEN BEGIN
+                  recApply.RESET;
+                  recApply.LOCKTABLE;
+                  recApply.SETCURRENTKEY(Type,"Payplan Entry");
+                  recApply.SETRANGE("Payplan Entry","Entry No");
+                  recApply.MODIFYALL(bCancel,TRUE);
+               END ELSE
+                  IF (cunLeaseTool.GetStatusAction("Contract No",1,0)=0) AND
+                     ("Amount Type"="Amount Type"::AmtBegin) THEN
+                        ERROR(Text001);
+             END;
+
+  }
+  FIELDS
+  {
+    { 1   ;   ;Entry No            ;Integer        }
+    { 2   ;   ;Contract No         ;Code20        ;TableRelation="Lease Header" }
+    { 3   ;   ;Contract Line       ;Integer       ;TableRelation="Lease Detail"."Line No" WHERE (Contract No=FIELD(Contract No));
+                                                   CaptionML=[BGR=Линия по ред;
+                                                              ENU=Line no.] }
+    { 4   ;   ;Due date            ;Date          ;CaptionML=[BGR=Дата на падеж;
+                                                              ENU=Due date] }
+    { 5   ;   ;Month               ;Integer       ;CaptionML=[BGR=Месец;
+                                                              ENU=Month];
+                                                   Editable=No }
+    { 6   ;   ;Invoiced Principal  ;Boolean       ;CaptionML=[BGR=Главница Фактурирана;
+                                                              ENU=Principal Invoiced] }
+    { 7   ;   ;Principal Excl VAT  ;Decimal       ;CaptionML=[BGR=Главница без ДДС;
+                                                              ENU=Principal Excl VAT];
+                                                   AutoFormatExpr=GetCurrencyCode }
+    { 8   ;   ;Interest Excl VAT   ;Decimal       ;OnValidate=BEGIN
+                                                                IF "Amount Type"="Amount Type"::AmtBegin THEN
+                                                                   "Interest Excl VAT":=xRec."Interest Excl VAT";
+                                                              END;
+
+                                                   CaptionML=[BGR=Лихва без ДДС;
+                                                              ENU=Interest Excl VAT];
+                                                   AutoFormatExpr=GetCurrencyCode }
+    { 9   ;   ;Payed Principal     ;Boolean       ;CaptionML=[BGR=Главница Платена;
+                                                              ENU=Principal Payed];
+                                                   Editable=No }
+    { 10  ;   ;Entry Type          ;Option        ;OptionCaptionML=[BGR=Главница и лихва,Лихва;
+                                                                    ENU=Partial and interest,Interest];
+                                                   OptionString=Both,Interest;
+                                                   Editable=No }
+    { 11  ;   ;Amount Type         ;Option        ;CaptionML=[BGR=Тип погасителен план;
+                                                              ENU=Type Payoff plan];
+                                                   OptionCaptionML=[BGR=Погасителен за Основа,Погасителен за ДДС,Първоначална вноска,Погасителен за Услуги,Погасителен за Услуги ДДС;
+                                                                    ENU=Payoff for Base,Payoff for VAT,Begin payment,Payoff for Service,Payoff for Service VAT];
+                                                   OptionString=Amount,VAT,AmtBegin,Service,ServVAT;
+                                                   Editable=No }
+    { 12  ;   ;Principal Incl VAT  ;Decimal       ;CaptionML=[BGR=Главница с ДДС;
+                                                              ENU=Principal Incl VAT];
+                                                   AutoFormatExpr=GetCurrencyCode }
+    { 13  ;   ;Interest Incl VAT   ;Decimal       ;OnValidate=BEGIN
+                                                                IF "Amount Type"="Amount Type"::AmtBegin THEN
+                                                                   "Interest Excl VAT":=xRec."Interest Excl VAT";
+                                                              END;
+
+                                                   CaptionML=[BGR=Лихва с ДДС;
+                                                              ENU=Interest Incl VAT];
+                                                   AutoFormatExpr=GetCurrencyCode }
+    { 14  ;   ;Invoiced Interest   ;Boolean       ;CaptionML=[BGR=Лихва Фактурирана;
+                                                              ENU=Interest Invoiced] }
+    { 15  ;   ;Payed Interest      ;Boolean       ;CaptionML=[BGR=Лихва Платена;
+                                                              ENU=Interest Payed];
+                                                   Editable=No }
+    { 16  ;   ;Global Dimension 1 Code;Code20     ;TableRelation="Dimension Value".Code WHERE (Global Dimension No.=CONST(1));
+                                                   OnValidate=BEGIN
+                                                                //ValidateShortcutDimCode(1,"Global Dimension 1 Code");
+                                                              END;
+
+                                                   CaptionML=[BGR=Код глобална аналитичност 1;
+                                                              ENU=Global Dimension 1 Code;
+                                                              NLD=Code globale dimensie 1;
+                                                              FRB=Code axe principal 1;
+                                                              NLB=Code globale dimensie 1];
+                                                   CaptionClass='1,1,1' }
+    { 17  ;   ;Inv Principal Excl VAT;Decimal     ;FieldClass=FlowField;
+                                                   CalcFormula=Sum("Lease Apply"."Amount Excl VAT" WHERE (Type=FILTER(Principal|AmtBegin|VAT principal|Service|VAT Service),
+                                                                                                          Payplan Entry=FIELD(Entry No),
+                                                                                                          Invoice Date=FIELD(Date Post Filter)));
+                                                   CaptionML=[BGR=Фактурирана главница без ДДС;
+                                                              ENU=Invoiced Principal Excl VAT];
+                                                   Editable=No;
+                                                   AutoFormatExpr=GetCurrencyCode }
+    { 18  ;   ;Inv Interest Excl VAT;Decimal      ;FieldClass=FlowField;
+                                                   CalcFormula=Sum("Lease Apply"."Amount Excl VAT" WHERE (Type=FILTER(Interest|VAT interest|Interest Service|VAT interest service),
+                                                                                                          Payplan Entry=FIELD(Entry No),
+                                                                                                          Invoice Date=FIELD(Date Post Filter)));
+                                                   CaptionML=[BGR=Фактурирана лихва без ДДС;
+                                                              ENU=Invoiced Interest Excl VAT];
+                                                   Editable=No;
+                                                   AutoFormatExpr=GetCurrencyCode }
+    { 19  ;   ;Pay Principal Incl VAT;Decimal     ;FieldClass=FlowField;
+                                                   CalcFormula=Sum("Lease Apply"."Pay Amount Incl VAT" WHERE (Type=FILTER(Principal|AmtBegin|VAT principal|Service|VAT Service),
+                                                                                                              Payplan Entry=FIELD(Entry No),
+                                                                                                              Payment Date=FIELD(Date Pay Filter)));
+                                                   CaptionML=[BGR=Платена главница с ДДС;
+                                                              ENU=Payed principal Incl VAT];
+                                                   Editable=No;
+                                                   AutoFormatExpr=GetCurrencyCode }
+    { 20  ;   ;Pay Interest Incl VAT;Decimal      ;FieldClass=FlowField;
+                                                   CalcFormula=Sum("Lease Apply"."Pay Amount Incl VAT" WHERE (Type=FILTER(Interest|VAT interest|Interest Service|VAT interest service),
+                                                                                                              Payplan Entry=FIELD(Entry No),
+                                                                                                              Payment Date=FIELD(Date Pay Filter)));
+                                                   CaptionML=[BGR=Платена лихва с ДДС;
+                                                              ENU=Payed Interest Incl VAT];
+                                                   Editable=No;
+                                                   AutoFormatExpr=GetCurrencyCode }
+    { 21  ;   ;Inv Principal Incl VAT;Decimal     ;FieldClass=FlowField;
+                                                   CalcFormula=Sum("Lease Apply"."Amount Incl VAT" WHERE (Type=FILTER(Principal|AmtBegin|VAT principal|Service|VAT Service),
+                                                                                                          Payplan Entry=FIELD(Entry No),
+                                                                                                          Invoice Date=FIELD(Date Post Filter)));
+                                                   CaptionML=[BGR=Фактурирана главница с ДДС;
+                                                              ENU=Invoiced Principal Incl VAT];
+                                                   Editable=No;
+                                                   AutoFormatExpr=GetCurrencyCode }
+    { 22  ;   ;Inv Interest Incl VAT;Decimal      ;FieldClass=FlowField;
+                                                   CalcFormula=Sum("Lease Apply"."Amount Incl VAT" WHERE (Type=FILTER(Interest|VAT interest|Interest Service|VAT interest service),
+                                                                                                          Payplan Entry=FIELD(Entry No),
+                                                                                                          Invoice Date=FIELD(Date Post Filter)));
+                                                   CaptionML=[BGR=Фактурирана лихва с ДДС;
+                                                              ENU=Invoiced Interest Incl VAT];
+                                                   Editable=No;
+                                                   AutoFormatExpr=GetCurrencyCode }
+    { 23  ;   ;Inv Principal Excl VAT t;Decimal   ;OnLookup=BEGIN
+                                                              LookUpPrincipal(opType::Excl);
+                                                            END;
+
+                                                   CaptionML=[BGR=Фактурирана главница без ДДС_;
+                                                              ENU=Invoiced Principal Excl VAT_];
+                                                   Editable=No;
+                                                   AutoFormatExpr=GetCurrencyCode }
+    { 24  ;   ;Inv Interest Excl VAT t;Decimal    ;OnLookup=BEGIN
+                                                              LookUpInterest(opType::Excl);
+                                                            END;
+
+                                                   CaptionML=[BGR=Фактурирана лихва без ДДС_;
+                                                              ENU=Invoiced Interest Excl VAT_];
+                                                   Editable=No;
+                                                   AutoFormatExpr=GetCurrencyCode }
+    { 25  ;   ;Pay Principal Incl VAT t;Decimal   ;OnLookup=BEGIN
+                                                              LookUpPrincipal(opType::PayIncl);
+                                                            END;
+
+                                                   CaptionML=[BGR=Платена главница с ДДС_;
+                                                              ENU=Payed principal Incl VAT_];
+                                                   Editable=No;
+                                                   AutoFormatExpr=GetCurrencyCode }
+    { 26  ;   ;Pay Interest Incl VAT t;Decimal    ;OnLookup=BEGIN
+                                                              LookUpInterest(opType::PayIncl);
+                                                            END;
+
+                                                   CaptionML=[BGR=Платена лихва с ДДС_;
+                                                              ENU=Payed Interest Incl VAT_];
+                                                   Editable=No;
+                                                   AutoFormatExpr=GetCurrencyCode }
+    { 27  ;   ;Inv Principal Incl VAT t;Decimal   ;OnLookup=BEGIN
+                                                              LookUpPrincipal(opType::Incl);
+                                                            END;
+
+                                                   CaptionML=[BGR=Фактурирана главница с ДДС_;
+                                                              ENU=Invoiced Principal Incl VAT_];
+                                                   Editable=No;
+                                                   AutoFormatExpr=GetCurrencyCode }
+    { 28  ;   ;Inv Interest Incl VAT t;Decimal    ;OnLookup=BEGIN
+                                                              LookUpInterest(opType::Incl);
+                                                            END;
+
+                                                   CaptionML=[BGR=Фактурирана лихва с ДДС_;
+                                                              ENU=Invoiced Interest Incl VAT_];
+                                                   Editable=No;
+                                                   AutoFormatExpr=GetCurrencyCode }
+    { 29  ;   ;Open                ;Boolean       ;InitValue=Yes }
+    { 30  ;   ;Rem Principal Excl VAT;Decimal     ;CaptionML=[BGR=Остатъчна сума без ДДС;
+                                                              ENU=Remainig Principal Excl VAT];
+                                                   AutoFormatExpr=GetCurrencyCode }
+    { 31  ;   ;Rem Principal Incl VAT;Decimal     ;CaptionML=[BGR=Остатъчна сума с ДДС;
+                                                              ENU=Remaining Principal Incl VAT];
+                                                   AutoFormatExpr=GetCurrencyCode }
+    { 32  ;   ;Vendor No           ;Code20        ;TableRelation=Vendor;
+                                                   OnValidate=VAR
+                                                                recVendor@1400000 : Record 23;
+                                                              BEGIN
+                                                              END;
+
+                                                   CaptionML=[BGR=Доставчик No;
+                                                              ENU=Vendor  No] }
+    { 33  ;   ;Payment Excl VAT t  ;Decimal       ;CaptionML=[BGR=Вноска без ДДС;
+                                                              ENU=Payment Excl VAT] }
+    { 34  ;   ;Payment Incl VAT t  ;Decimal       ;CaptionML=[BGR=Вноска с ДДС;
+                                                              ENU=Payment INcl VAT] }
+    { 35  ;   ;FA No               ;Code20        ;TableRelation="Fixed Asset" }
+    { 36  ;   ;Post FA             ;Boolean       ;CaptionML=[BGR=Осчетоводен Дълготраен Актив;
+                                                              ENU=Post FA];
+                                                   Editable=No }
+    { 37  ;   ;bError              ;Boolean        }
+    { 38  ;   ;bCancel             ;Boolean       ;CaptionML=[BGR=Анулиран;
+                                                              ENU=Canceled] }
+    { 39  ;   ;Date Post Filter    ;Date          ;FieldClass=FlowFilter;
+                                                   CaptionML=[BGR=Филтър Дата на фактуриране;
+                                                              ENU=Invoice Date Filter] }
+    { 40  ;   ;Date Pay Filter     ;Date          ;FieldClass=FlowFilter;
+                                                   CaptionML=[BGR=Филтър дата на плащане;
+                                                              ENU=Payment Date filter] }
+    { 41  ;   ;Closed              ;Boolean       ;CaptionML=[BGR=Приключен;
+                                                              ENU=Closed];
+                                                   Editable=No }
+    { 42  ;   ;Early               ;Boolean       ;CaptionML=[BGR=Предсрочно погасен;
+                                                              ENU=Early payment];
+                                                   Description=DIS.181;
+                                                   Editable=No }
+    { 43  ;   ;LastPayment         ;Boolean       ;CaptionML=[BGR=Опция закупуване;
+                                                              ENU=Purchase Payment] }
+  }
+  KEYS
+  {
+    {    ;Entry No                                ;Clustered=Yes }
+    {    ;bCancel,Contract No,Contract Line,Month,Amount Type;
+                                                   SumIndexFields=Interest Excl VAT,Principal Excl VAT,Principal Incl VAT,Interest Incl VAT }
+    {    ;bCancel,Contract No,Month,Amount Type   ;SumIndexFields=Interest Excl VAT,Principal Excl VAT,Principal Incl VAT,Interest Incl VAT,Rem Principal Excl VAT,Rem Principal Incl VAT }
+    {    ;bCancel,Open,Due date,Contract No        }
+    {    ;bCancel,Open,Global Dimension 1 Code,Due date }
+    {    ;bCancel,Open,Vendor No,Due date          }
+    {    ;bCancel,Open,FA No,Due date              }
+    {    ;Post FA,FA No,Due date                   }
+    {    ;Early,Contract No,Month,Amount Type      }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      recHdr@1000000005 : Record 50023;
+      recApply@1000000004 : Record 50027;
+      fApply@1000000003 : Page 50090;
+      recPay@1000000002 : Record 50025;
+      opType@1000000001 : ' ,Excl,Incl,PayIncl';
+      cunLeaseTool@1000000000 : Codeunit 50019;
+
+    PROCEDURE IfExists@1400000(pContract@1400000 : Code[20];pLine@1400001 : Integer;pMonth@1400002 : Integer;pType@1400003 : Option);
+    BEGIN
+      RESET;
+      SETCURRENTKEY(bCancel,"Contract No","Contract Line",Month);
+      SETRANGE("Contract No",pContract);
+      SETRANGE("Contract Line",pLine);
+      SETRANGE(Month,pMonth);
+      SETRANGE("Amount Type",pType);
+      SETRANGE(bCancel,FALSE);
+    END;
+
+    PROCEDURE CheckInvoiced@1400001(pEntry@1400000 : Integer;pType@1400001 : 'Principal,Interest,AmtBegin,VAT principal,VAT interest,Service,VAT Service,Interest service,VAT interest service';pDelete@1400002 : Boolean;pInvoice@1400004 : Boolean);
+    VAR
+      lText001@1400003 : TextConst 'BGR=Стойноста %1 е по-голяма от стойността %2;ENU=Amount %1 is larger than amount %2';
+      LeaseSetup@1400005 : Record 50028;
+    BEGIN
+      IF GET(pEntry) THEN BEGIN
+         CALCFIELDS("Inv Principal Excl VAT","Inv Interest Excl VAT");
+         LeaseSetup.GET;
+         CASE pType OF
+            pType::Principal,pType::AmtBegin,pType::"VAT principal",pType::Service,pType::"VAT Service" :
+               IF pDelete THEN BEGIN
+                  IF pInvoice THEN
+                     "Invoiced Principal":= FALSE
+                  ELSE
+                     "Invoiced Principal":=TRUE;
+               END ELSE
+                  IF ABS("Inv Principal Excl VAT"-"Principal Excl VAT")<=LeaseSetup."Invoice Tolerance" THEN
+                     "Invoiced Principal":=TRUE
+                  ELSE
+                     IF ("Inv Principal Excl VAT"-"Principal Excl VAT")<LeaseSetup."Invoice Tolerance" THEN
+                        "Invoiced Principal":=FALSE
+                     ELSE
+                        ERROR(lText001,FIELDCAPTION("Inv Principal Excl VAT"),FIELDCAPTION("Principal Excl VAT"));
+            pType::Interest,pType::"VAT interest",pType::"Interest service",pType::"VAT interest service" :
+               IF pDelete THEN BEGIN
+                  IF pInvoice THEN
+                     "Invoiced Interest":= FALSE
+                  ELSE
+                     "Invoiced Interest":=TRUE;
+               END ELSE
+                  IF ABS("Inv Interest Excl VAT"-"Interest Excl VAT")<=LeaseSetup."Invoice Tolerance" THEN
+                     "Invoiced Interest":=TRUE
+                  ELSE
+                     IF ("Inv Interest Excl VAT"-"Interest Excl VAT")<LeaseSetup."Invoice Tolerance" THEN
+                        "Invoiced Interest":=FALSE
+                     ELSE
+                        ERROR(lText001,FIELDCAPTION("Inv Interest Excl VAT"),FIELDCAPTION("Interest Excl VAT"));
+         END;
+         MODIFY;
+      END;
+    END;
+
+    PROCEDURE GetCurrencyCode@1() : Code[10];
+    VAR
+      SalesShptHeader@1000 : Record 110;
+    BEGIN
+      IF ("Contract No" = recHdr."Contract No") THEN
+         EXIT(recHdr."Currency Code")
+      ELSE
+        IF recHdr.GET("Contract No") THEN
+           EXIT(recHdr."Currency Code")
+        ELSE
+           EXIT('');
+    END;
+
+    PROCEDURE CheckPayed@1400002(pEntry@1400000 : Integer;pType@1400001 : 'Principal,Interest,AmtBegin,VAT Principal,VAT Interest,Service,VAT Service,Interest service,VAT interest service';pDelete@1400002 : Boolean;pInvoice@1400004 : Boolean);
+    VAR
+      lText001@1400003 : TextConst 'BGR=Стойноста %1 е по-голяма от стойността %2;ENU=Amount %1 is larger than amount %2';
+      LeaseSetup@1400005 : Record 50028;
+    BEGIN
+      IF GET(pEntry) THEN BEGIN
+         CALCFIELDS("Pay Principal Incl VAT","Pay Interest Incl VAT");
+         LeaseSetup.GET;
+         CASE pType OF
+            pType::Principal,pType::AmtBegin,pType::"VAT Principal",pType::Service,pType::"VAT Service":
+               IF pDelete THEN BEGIN
+                  IF pInvoice THEN
+                     "Payed Principal":= FALSE
+                  ELSE
+                     "Payed Principal":=TRUE;
+               END ELSE
+                  IF "Principal Incl VAT"=0 THEN BEGIN
+                     IF ABS("Pay Principal Incl VAT"-"Principal Excl VAT")<=LeaseSetup."Payment Tolerance" THEN
+                        "Payed Principal":=TRUE
+                     ELSE
+                        IF ("Pay Principal Incl VAT"-"Principal Excl VAT")<LeaseSetup."Payment Tolerance" THEN
+                           "Payed Principal":=FALSE
+                        ELSE
+                           ERROR(lText001,FIELDCAPTION("Pay Principal Incl VAT"),FIELDCAPTION("Principal Excl VAT"));
+                  END ELSE BEGIN
+                     IF ABS("Pay Principal Incl VAT"-"Principal Incl VAT")<=LeaseSetup."Payment Tolerance" THEN
+                        "Payed Principal":=TRUE
+                     ELSE
+                        IF ("Pay Principal Incl VAT"-"Principal Incl VAT")<LeaseSetup."Payment Tolerance" THEN
+                           "Payed Principal":=FALSE
+                        ELSE
+                           ERROR(lText001,FIELDCAPTION("Pay Principal Incl VAT"),FIELDCAPTION("Principal Incl VAT"));
+                  END;
+            pType::Interest,pType::"VAT Interest",pType::"Interest service",pType::"VAT interest service":
+               IF pDelete THEN BEGIN
+                  IF pInvoice THEN
+                     "Payed Interest":= FALSE
+                  ELSE
+                     "Payed Interest":=TRUE;
+               END ELSE
+                  IF "Interest Incl VAT"=0 THEN BEGIN
+                     IF ABS("Pay Interest Incl VAT"-"Interest Excl VAT")<=LeaseSetup."Payment Tolerance" THEN
+                        "Payed Interest":=TRUE
+                     ELSE
+                        IF ("Pay Interest Incl VAT"-"Interest Excl VAT")<LeaseSetup."Payment Tolerance" THEN
+                           "Payed Interest":=FALSE
+                        ELSE
+                           ERROR(lText001,FIELDCAPTION("Pay Interest Incl VAT"),FIELDCAPTION("Interest Excl VAT"));
+                  END ELSE BEGIN
+                     IF ABS("Pay Interest Incl VAT"-"Interest Incl VAT")<=LeaseSetup."Payment Tolerance" THEN
+                        "Payed Interest":=TRUE
+                     ELSE
+                        IF ("Pay Interest Incl VAT"-"Interest Incl VAT")<LeaseSetup."Payment Tolerance" THEN
+                           "Payed Interest":=FALSE
+                        ELSE
+                           ERROR(lText001,FIELDCAPTION("Pay Interest Incl VAT"),FIELDCAPTION("Interest Incl VAT"));
+                  END;
+         END;
+      //14.11.2017 - krasi
+         IF Early THEN
+            Open:=NOT "Payed Principal"
+         ELSE
+      //
+           IF "Entry Type"="Entry Type"::Interest THEN
+              Open:=NOT "Payed Interest"
+           ELSE
+              IF "Amount Type"="Amount Type"::AmtBegin THEN
+                 Open:=NOT "Payed Principal"
+              ELSE
+                 IF "Interest Excl VAT"=0 THEN
+                    Open:=NOT "Payed Principal"
+                 ELSE
+                    Open:=NOT ("Payed Principal" AND "Payed Interest");
+         MODIFY;
+      END;
+    END;
+
+    PROCEDURE LookUpPrincipal@1400003(popType@1400000 : ' ,Excl,Incl,PayIncl');
+    BEGIN
+      recApply.RESET;
+      recApply.SETCURRENTKEY(Type,"Payplan Entry");
+      CASE "Amount Type" OF
+         "Amount Type"::Amount,
+         "Amount Type"::Service,
+         "Amount Type"::AmtBegin :
+            recApply.SETFILTER(Type,'%1|%2|%3',recApply.Type::Principal,
+                                               recApply.Type::AmtBegin,
+                                               recApply.Type::Service);
+         "Amount Type"::VAT,
+         "Amount Type"::ServVAT:
+            recApply.SETFILTER(Type,'%1|%2',recApply.Type::"VAT principal",
+                                            recApply.Type::"VAT Service");
+      END;
+
+      recPay.RESET;
+      recPay.SETCURRENTKEY(bCancel,"Contract No",Month,"Amount Type");
+      recPay.SETRANGE("Contract No","Contract No");
+      recPay.SETRANGE(Month,Month);
+      recPay.SETRANGE(bCancel,bCancel);
+      IF recPay.FIND('-') THEN
+         REPEAT
+            recApply.SETRANGE("Payplan Entry",recPay."Entry No");
+            IF recApply.FIND('-') THEN
+               REPEAT
+                  recApply.MARK(TRUE);
+               UNTIL recApply.NEXT=0;
+         UNTIL recPay.NEXT=0;
+      recApply.SETRANGE("Payplan Entry");
+      recApply.MARKEDONLY(TRUE);
+      CLEAR(fApply);
+      fApply.SETTABLEVIEW(recApply);
+      fApply.SetActiveField(popType);
+      fApply.RUNMODAL;
+    END;
+
+    PROCEDURE LookUpInterest@1400004(popType@1400000 : ' ,Excl,Incl,PayIncl');
+    BEGIN
+      recApply.RESET;
+      recApply.SETCURRENTKEY(Type,"Payplan Entry");
+      CASE "Amount Type" OF
+         "Amount Type"::Amount,
+         "Amount Type"::Service,
+         "Amount Type"::AmtBegin :
+            recApply.SETFILTER(Type,'%1|%2',recApply.Type::Interest,
+                                            recApply.Type::"Interest Service");
+         "Amount Type"::VAT,
+         "Amount Type"::ServVAT:
+            recApply.SETFILTER(Type,'%1|%2',recApply.Type::"VAT interest",
+                                            recApply.Type::"VAT interest service");
+      END;
+
+      recPay.RESET;
+      recPay.SETCURRENTKEY(bCancel,"Contract No",Month,"Amount Type");
+      recPay.SETRANGE("Contract No","Contract No");
+      recPay.SETRANGE(Month,Month);
+      recPay.SETRANGE(bCancel,bCancel);
+      IF recPay.FINDSET THEN
+         REPEAT
+            recApply.SETRANGE("Payplan Entry",recPay."Entry No");
+            IF recApply.FINDSET THEN
+               REPEAT
+                  recApply.MARK(TRUE);
+               UNTIL recApply.NEXT=0;
+         UNTIL recPay.NEXT=0;
+      recApply.SETRANGE("Payplan Entry");
+      recApply.MARKEDONLY(TRUE);
+      CLEAR(fApply);
+      fApply.SETTABLEVIEW(recApply);
+      fApply.SetActiveField(popType);
+      fApply.RUNMODAL;
+    END;
+
+    PROCEDURE CheckPayedInvoiced@1400005(pEntry@1400000 : Integer;pType@1400001 : 'Principal,Interest,AmtBegin,VAT Principal,VAT Interest,Service,VAT Service,Interest service,VAT interest service';pInvoice@1400004 : Boolean);
+    VAR
+      lText001@1400003 : TextConst 'BGR=Стойноста %1 е по-голяма от стойността %2;ENU=Amount %1 is larger than amount %2';
+      LeaseSetup@1400005 : Record 50028;
+    BEGIN
+      IF GET(pEntry) THEN BEGIN
+         CALCFIELDS("Pay Principal Incl VAT","Pay Interest Incl VAT",
+                    "Inv Principal Excl VAT","Inv Interest Excl VAT",
+                    "Inv Principal Incl VAT","Inv Interest Incl VAT");
+         LeaseSetup.GET;
+         CASE pType OF
+            pType::Principal,pType::AmtBegin,pType::"VAT Principal",pType::Service,pType::"VAT Service":
+               IF "Principal Incl VAT"=0 THEN BEGIN
+                  IF ("Inv Principal Excl VAT"=0) AND ("Pay Principal Incl VAT"=0) THEN BEGIN
+                    "Payed Principal":=FALSE;
+                    "Invoiced Principal":=FALSE;
+                  END ELSE BEGIN
+                    IF (ABS("Pay Principal Incl VAT"-"Inv Principal Excl VAT")<=LeaseSetup."Payment Tolerance") THEN BEGIN
+                       "Payed Principal":=TRUE;
+                       "Invoiced Principal":=TRUE;
+                    END ELSE
+                       IF (("Pay Principal Incl VAT"-"Inv Principal Excl VAT")<LeaseSetup."Payment Tolerance") THEN
+                          "Payed Principal":=FALSE
+                       ELSE
+                          ERROR(lText001,FIELDCAPTION("Pay Principal Incl VAT"),FIELDCAPTION("Inv Principal Excl VAT"));
+                  END;
+               END ELSE BEGIN
+                  IF ("Pay Principal Incl VAT"=0) AND ("Inv Principal Incl VAT"=0) THEN BEGIN
+                    "Payed Principal":=FALSE;
+                    "Invoiced Principal":=FALSE;
+                  END ELSE BEGIN
+                    IF (ABS("Pay Principal Incl VAT"-"Inv Principal Incl VAT")<=LeaseSetup."Payment Tolerance") THEN BEGIN
+                       "Payed Principal":=TRUE;
+                       "Invoiced Principal":=TRUE;
+                    END ELSE
+                       IF (("Pay Principal Incl VAT"-"Inv Principal Incl VAT")<LeaseSetup."Payment Tolerance") THEN
+                          "Payed Principal":=FALSE
+                       ELSE
+                          ERROR(lText001,FIELDCAPTION("Pay Principal Incl VAT"),FIELDCAPTION("Inv Principal Incl VAT"));
+                  END;
+               END;
+            pType::Interest,pType::"VAT Interest",pType::"Interest service",pType::"VAT interest service":
+               IF "Interest Incl VAT"=0 THEN BEGIN
+                  IF ("Pay Interest Incl VAT"=0) AND ("Inv Interest Excl VAT"=0) THEN BEGIN
+                    "Payed Interest":=FALSE;
+                    "Invoiced Interest":=FALSE;
+                  END ELSE BEGIN
+                    IF (ABS("Pay Interest Incl VAT"-"Inv Interest Excl VAT")<=LeaseSetup."Payment Tolerance") THEN BEGIN
+                       "Payed Interest":=TRUE;
+                       "Invoiced Interest":=TRUE;
+                    END ELSE
+                       IF (("Pay Interest Incl VAT"-"Inv Interest Excl VAT")<LeaseSetup."Payment Tolerance") THEN
+                          "Payed Interest":=FALSE
+                       ELSE
+                          ERROR(lText001,FIELDCAPTION("Pay Interest Incl VAT"),FIELDCAPTION("Inv Interest Excl VAT"));
+                  END;
+               END ELSE BEGIN
+                  IF ("Pay Interest Incl VAT"=0) AND ("Inv Interest Incl VAT"=0) THEN BEGIN
+                    "Payed Interest":=FALSE;
+                    "Invoiced Interest":=FALSE;
+                  END ELSE BEGIN
+                    IF (ABS("Pay Interest Incl VAT"-"Inv Interest Incl VAT")<=LeaseSetup."Payment Tolerance") THEN BEGIN
+                       "Payed Interest":=TRUE;
+                       "Invoiced Interest":=TRUE;
+                    END ELSE
+                       IF (("Pay Interest Incl VAT"-"Inv Interest Incl VAT")<LeaseSetup."Payment Tolerance") THEN
+                          "Payed Interest":=FALSE
+                       ELSE
+                          ERROR(lText001,FIELDCAPTION("Pay Interest Incl VAT"),FIELDCAPTION("Interest Incl VAT"));
+                  END;
+               END;
+         END;
+      //14.11.2017 - krasi
+         IF Early THEN
+            Open:=NOT "Payed Principal"
+         ELSE
+      //
+            IF "Entry Type"="Entry Type"::Interest THEN
+               Open:=NOT "Payed Interest"
+            ELSE
+               IF "Amount Type"="Amount Type"::AmtBegin THEN
+                  Open:=NOT "Payed Principal"
+               ELSE
+                  IF "Interest Excl VAT"=0 THEN
+                    Open:=NOT "Payed Principal"
+                  ELSE
+                    Open:=NOT ("Payed Principal" AND "Payed Interest");
+         MODIFY;
+      END;
+    END;
+
+    PROCEDURE SetAll@50000();
+    BEGIN
+      "Invoiced Principal":=TRUE;
+      "Payed Principal":=TRUE;
+      "Invoiced Interest":=TRUE;
+      "Payed Interest":=TRUE;
+      Open:=FALSE;
+      MODIFY(TRUE);
+    END;
+
+    PROCEDURE SetPrincipal@50001();
+    BEGIN
+      "Invoiced Principal":=TRUE;
+      "Payed Principal":=TRUE;
+      MODIFY(TRUE);
+    END;
+
+    PROCEDURE SetOpen@50002();
+    BEGIN
+      Open:=FALSE;
+      MODIFY(TRUE);
+    END;
+
+    PROCEDURE SetCancel@50003();
+    BEGIN
+      bCancel:=TRUE;
+      MODIFY(TRUE);
+    END;
+
+    PROCEDURE SetEarly@50004();
+    BEGIN
+      Early:=TRUE;
+      MODIFY(TRUE);
+    END;
+
+    BEGIN
+    {
+      //14.11.2017 - krasi - [DIS181]
+        add field "early", add key "Early,Contract No,Month,Amount Type"
+        add check for Open in Early
+      //20.12.2017 - krasi
+        fixed CheckPayedInvoice (check if invoiced amouny<>0)
+      //11.12.2020 - krasi
+        add field "lastpayment"
+    }
+    END.
+  }
+}
+
+OBJECT Table 50026 Lease Amount
+{
+  OBJECT-PROPERTIES
+  {
+    Date=13.03.18;
+    Time=12:11:01;
+    Modified=Yes;
+    Version List=DIS_LIZ;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+
+               TESTFIELD("Contract No");
+               IF cunLeaseTool.GetStatusAction("Contract No",0,0)=0 THEN
+                  ERROR(Text001);
+             END;
+
+    OnModify=BEGIN
+
+               IF cunLeaseTool.GetStatusAction("Contract No",1,0)=0 THEN
+                  ERROR(Text002);
+             END;
+
+    OnDelete=BEGIN
+
+               IF cunLeaseTool.GetStatusAction("Contract No",2,0)=0 THEN
+                  ERROR(Text003);
+             END;
+
+    OnRename=BEGIN
+
+               IF cunLeaseTool.GetStatusAction("Contract No",3,0)=0 THEN
+                  ERROR(Text004);
+             END;
+
+  }
+  FIELDS
+  {
+    { 1   ;   ;Contract No         ;Code20        ;TableRelation="Lease Header";
+                                                   CaptionML=[BGR=Договор No;
+                                                              ENU=Contract No] }
+    { 2   ;   ;Vehicle Type        ;Option        ;CaptionML=[BGR=Тип превозно средство;
+                                                              ENU=Vehicle type];
+                                                   OptionCaptionML=[BGR=Влекач,Ремарке,Вагон,Услуги,Леки коли,Други;
+                                                                    ENU=Truck,Trailer,Wagon,Service,Auto,Other];
+                                                   OptionString=Truck,Trailer,Wagon,Service,Auto,Other }
+    { 3   ;   ;Amount Excl VAT     ;Decimal       ;OnValidate=BEGIN
+                                                                VALIDATE("VAT %");
+                                                              END;
+
+                                                   CaptionML=[BGR=Главница след първоначална вноска без ДДС;
+                                                              ENU=Principal after begining payment Excl VAT];
+                                                   AutoFormatExpr=GetCurrencyCode }
+    { 4   ;   ;Count               ;Integer       ;FieldClass=FlowField;
+                                                   CalcFormula=Count("Lease Detail" WHERE (Contract No=FIELD(Contract No),
+                                                                                           Vehicle Type=FIELD(Vehicle Type)));
+                                                   CaptionML=[BGR=Брой;
+                                                              ENU=Count] }
+    { 5   ;   ;Amount Incl VAT     ;Decimal       ;OnValidate=BEGIN
+                                                                "VAT %":=("Amount Incl VAT"/"Amount Excl VAT"-1)*100;
+                                                              END;
+
+                                                   CaptionML=[BGR=Главница след първоначална вноска с ДДС;
+                                                              ENU=Principal after begining payment Incl VAT];
+                                                   AutoFormatExpr=GetCurrencyCode }
+    { 6   ;   ;VAT %               ;Decimal       ;OnValidate=BEGIN
+                                                                GetCurrency;
+                                                                "Amount Incl VAT":=ROUND("Amount Excl VAT"*(1+"VAT %"/100),Currency."Amount Rounding Precision");
+                                                                "Last Payment Incl VAT":=ROUND("Last Payment Excl VAT"*(1+"VAT %"/100),Currency."Amount Rounding Precision");
+                                                              END;
+
+                                                   CaptionML=[BGR=ДДС процент;
+                                                              ENU=VAT percent] }
+    { 7   ;   ;Last Payment Excl VAT;Decimal      ;OnValidate=BEGIN
+                                                                VALIDATE("VAT %");
+                                                              END;
+
+                                                   CaptionML=[BGR=Вноска закупуване без ДДС;
+                                                              ENU=Payment for purchase Excl VAT];
+                                                   AutoFormatExpr=GetCurrencyCode }
+    { 8   ;   ;Last Payment Incl VAT;Decimal      ;CaptionML=[BGR=Вноска закупуване с ДДС;
+                                                              ENU=Payment for purchase Incl VAT];
+                                                   AutoFormatExpr=GetCurrencyCode }
+  }
+  KEYS
+  {
+    {    ;Contract No,Vehicle Type                ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      recHdr@1000000002 : Record 50023;
+      cunLeaseTool@1000000001 : Codeunit 50019;
+      Currency@1000000000 : Record 4;
+      Text001@1000000006 : TextConst 'BGR=Статуса на договора не позволява вмъкване;ENU=Lease status do not allow insert';
+      Text002@1000000005 : TextConst 'BGR=Статуса на договора не позволява промяна;ENU=Lease status do not allow modify';
+      Text003@1000000004 : TextConst 'BGR=Статуса на договора не позволява изтриване;ENU=Lease status do not allow delete';
+      Text004@1000000003 : TextConst 'BGR=Статуса на договора не позволява преименуване;ENU=Lease status do not allow rename';
+
+    PROCEDURE GetCurrencyCode@1() : Code[10];
+    VAR
+      SalesShptHeader@1000 : Record 110;
+    BEGIN
+      IF ("Contract No" = recHdr."Contract No") THEN
+         EXIT(recHdr."Currency Code")
+      ELSE
+        IF recHdr.GET("Contract No") THEN
+           EXIT(recHdr."Currency Code")
+        ELSE
+           EXIT('');
+    END;
+
+    PROCEDURE GetCurrency@1400000();
+    VAR
+      CurrencyCode@1400000 : Code[10];
+    BEGIN
+      CurrencyCode:=GetCurrencyCode;
+      IF CurrencyCode = '' THEN BEGIN
+        CLEAR(Currency);
+        Currency.InitRoundingPrecision
+      END ELSE
+        IF CurrencyCode <> Currency.Code THEN BEGIN
+          Currency.GET(CurrencyCode);
+          Currency.TESTFIELD("Amount Rounding Precision");
+        END;
+    END;
+
+    BEGIN
+    END.
+  }
+}
+
+OBJECT Table 50027 Lease Apply
+{
+  OBJECT-PROPERTIES
+  {
+    Date=20.05.22;
+    Time=09:40:44;
+    Modified=Yes;
+    Version List=DIS_LIZ;
+  }
+  PROPERTIES
+  {
+    OnInsert=VAR
+               recApply@1000000001 : Record 50027;
+               iLast@1000000000 : Integer;
+             BEGIN
+
+               recApply.RESET;
+               recApply.SETCURRENTKEY("Entry No");
+               IF recApply.FIND('+') THEN
+                  iLast:=recApply."Entry No"
+               ELSE
+                  iLast:=1;
+               recApply.SETRANGE("Document Type","Document Type");
+               recApply.SETRANGE("Document No","Document No");
+               recApply.SETRANGE("Document Line","Document Line");
+               CASE Type OF
+                  Type::Principal,Type::"VAT principal",
+                  Type::Interest,Type::"VAT interest",
+                  Type::Service,Type::"VAT Service",
+                  Type::"Interest Service",Type::"VAT interest service" :
+                     recApply.SETFILTER(Type,'<>%1',Type::AmtBegin);
+                  ELSE
+                     recApply.SETRANGE(Type,Type);
+               END;
+               IF recApply.FIND('+') THEN
+                  "Entry No":=recApply."Entry No"
+               ELSE
+                  "Entry No":=iLast+1;
+             END;
+
+    OnDelete=VAR
+               bInvoice@1000000000 : Boolean;
+             BEGIN
+
+               CASE "Document Type" OF
+                  "Document Type"::Invoice,"Document Type"::"Post Inv" :
+                     bInvoice:=TRUE;
+                  "Document Type"::"Credit memo","Document Type"::"Post Cr memo" :
+                     bInvoice:=FALSE;
+               END;
+               recPlan.CheckInvoiced("Payplan Entry",Type,TRUE,bInvoice);
+               recPlan.CheckPayed("Payplan Entry",Type,TRUE,bInvoice);
+             END;
+
+    LookupPageID=Page50090;
+    DrillDownPageID=Page50090;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Document Type       ;Option        ;CaptionML=[BGR=Тип документ;
+                                                              ENU=Document type];
+                                                   OptionCaptionML=[BGR=Фактура,Кредитно,Осч. фактура,Осч. кредитно,Други;
+                                                                    ENU=Invoice,Credit memo,Post Invoice,Post credit memo,Other];
+                                                   OptionString=Invoice,Credit memo,Post Inv,Post Cr memo,OB }
+    { 2   ;   ;Document No         ;Code20        ;TableRelation=IF (Document Type=FILTER(Invoice)) "Purchase Header".No. WHERE (Document Type=FILTER(Invoice))
+                                                                 ELSE IF (Document Type=FILTER(Credit memo)) "Purchase Header".No. WHERE (Document Type=FILTER(Credit Memo))
+                                                                 ELSE IF (Document Type=FILTER(Post Inv)) "Purch. Inv. Header".No.
+                                                                 ELSE IF (Document Type=FILTER(Post Cr memo)) "Purch. Cr. Memo Hdr.".No.;
+                                                   CaptionML=[BGR=Документ No;
+                                                              ENU=Document No] }
+    { 3   ;   ;Document Line       ;Integer       ;CaptionML=[BGR=Ред документ;
+                                                              ENU=Document line] }
+    { 4   ;   ;Type                ;Option        ;CaptionML=[BGR=Вноска;
+                                                              ENU=Payment];
+                                                   OptionCaptionML=[BGR=Главница,Лихва,Първоначална,ДДС главница,ДДС лихва,Услуги,ДДС услуги,Лихва услуги,ДДС лихва услуги;
+                                                                    ENU=Principal,Interest,Begin amount,VAT principal,VAT interest,Service,VAT service,Interest service,VAT interest service];
+                                                   OptionString=Principal,Interest,AmtBegin,VAT principal,VAT interest,Service,VAT Service,Interest Service,VAT interest service }
+    { 5   ;   ;Payplan Entry       ;Integer       ;TableRelation=PayOffplan }
+    { 6   ;   ;Amount Excl VAT     ;Decimal       ;CaptionML=[BGR=Сума без ДДС;
+                                                              ENU=Amount Excl VAT];
+                                                   AutoFormatExpr=GetCurrencyCode }
+    { 7   ;   ;Contract No         ;Code20        ;TableRelation="Lease Header";
+                                                   CaptionML=[BGR=Договор;
+                                                              ENU=Contract] }
+    { 8   ;   ;Month               ;Integer       ;CaptionML=[BGR=Месец;
+                                                              ENU=Month] }
+    { 9   ;   ;Entry No            ;Integer        }
+    { 10  ;   ;Pay Amount Incl VAT ;Decimal       ;CaptionML=[BGR=Платена сума с ДДС;
+                                                              ENU=Pay Amount Incl VAT] }
+    { 11  ;   ;Amount Incl VAT     ;Decimal       ;CaptionML=[BGR=Сума с ДДС;
+                                                              ENU=Amount Incl VAT];
+                                                   AutoFormatExpr=GetCurrencyCode }
+    { 12  ;   ;Description         ;Text50         }
+    { 13  ;   ;bCancel             ;Boolean       ;CaptionML=[BGR=Анулиран;
+                                                              ENU=Cabceled] }
+    { 14  ;   ;Post Interest       ;Boolean       ;Editable=No }
+    { 20  ;   ;Invoice Date        ;Date          ;CaptionML=[BGR=Дата на фактуриране;
+                                                              ENU=Invoice Date] }
+    { 21  ;   ;Payment Date        ;Date          ;CaptionML=[BGR=Дата на плащане;
+                                                              ENU=Payment date] }
+    { 100 ;   ;Contract Line       ;Integer       ;Description=DIS }
+  }
+  KEYS
+  {
+    {    ;Document Type,Document No,Document Line,Type,Payplan Entry;
+                                                   Clustered=Yes }
+    {    ;Type,Payplan Entry,Invoice Date         ;SumIndexFields=Amount Excl VAT,Amount Incl VAT }
+    {    ;Type,Payplan Entry,Payment Date         ;SumIndexFields=Pay Amount Incl VAT }
+    {    ;Entry No                                ;SumIndexFields=Amount Excl VAT,Amount Incl VAT,Pay Amount Incl VAT }
+    {    ;bCancel,Contract No,Month,Type,Entry No,Contract Line;
+                                                   SumIndexFields=Amount Excl VAT,Amount Incl VAT,Pay Amount Incl VAT }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      recPlan@1000000001 : Record 50025;
+      recHdr@1000000000 : Record 50023;
+
+    PROCEDURE GetCurrencyCode@1() : Code[10];
+    VAR
+      SalesShptHeader@1000 : Record 110;
+    BEGIN
+      IF ("Contract No" = recHdr."Contract No") THEN
+         EXIT(recHdr."Currency Code")
+      ELSE
+        IF recHdr.GET("Contract No") THEN
+           EXIT(recHdr."Currency Code")
+        ELSE
+           EXIT('');
+    END;
+
+    PROCEDURE PaymentInclVAT@1400000(pEntry@1400000 : Integer) : Decimal;
+    VAR
+      recHdr@1400001 : Record 50023;
+      bolWithVATPlan@1400002 : Boolean;
+      decIncl@1400003 : Decimal;
+      decExcl@1400004 : Decimal;
+      decPay@1400005 : Decimal;
+      bolIntWithVAT@1400006 : Boolean;
+    BEGIN
+      RESET;
+      SETCURRENTKEY("Entry No");
+      SETRANGE("Entry No",pEntry);
+      CALCSUMS("Amount Excl VAT","Amount Incl VAT","Pay Amount Incl VAT");
+      decIncl:="Amount Incl VAT";
+      decExcl:="Amount Excl VAT";
+      decPay:="Pay Amount Incl VAT";
+      IF FIND('-') THEN BEGIN
+         IF recHdr.GET("Contract No") THEN BEGIN
+            bolWithVATPlan:=recHdr.IsHaveVATplan(recHdr);
+            bolIntWithVAT:=recHdr.IsHaveIntVAT(recHdr);
+            IF bolWithVATPlan THEN BEGIN
+               IF bolIntWithVAT AND (Type IN [Type::Interest,
+                                              Type::"Interest Service"]) THEN
+                  EXIT(decIncl-decPay)
+               ELSE
+                  EXIT(decExcl-decPay);
+            END ELSE
+               CASE Type OF
+                  Type::Interest,Type::"Interest Service" :
+                     IF bolIntWithVAT THEN
+                        EXIT(decIncl-decPay)
+                     ELSE
+                        EXIT(decExcl-decPay);
+                  ELSE
+                     EXIT(decIncl-decPay);
+              END;
+         END;
+      END;
+      EXIT(0);
+    END;
+
+    PROCEDURE PaymentFactor@1400001(pEntry@1400000 : Integer;pAmount@1400004 : Decimal;pBol@1400005 : Boolean) : Decimal;
+    VAR
+      recPHdr@1400001 : Record 38;
+      recPInv@1400002 : Record 122;
+      recPCrM@1400003 : Record 124;
+      decFactor@1400006 : Decimal;
+      recPLine@1400007 : Record 39;
+      recPInvL@1400008 : Record 123;
+      recPCrML@1400009 : Record 125;
+      LeaseSetup@1400010 : Record 50028;
+    BEGIN
+      LeaseSetup.GET;
+      decFactor:=1;
+      CASE "Document Type" OF
+         "Document Type"::Invoice : BEGIN
+            IF recPHdr.GET(recPHdr."Document Type"::Invoice,"Document No") THEN BEGIN
+               IF recPHdr."Currency Factor"=0 THEN
+                  decFactor:=1
+               ELSE
+                  decFactor:=recPHdr."Currency Factor";
+               IF pBol THEN
+                  IF recPLine.GET(recPLine."Document Type"::Invoice,"Document No","Document Line") THEN BEGIN
+                     recPLine.SuspendStatusCheck(TRUE);
+                     recPLine.VALIDATE("Direct Unit Cost",pAmount);
+                     recPLine.MODIFY;
+                  END;
+            END;
+            EXIT(decFactor);
+          END;
+
+         "Document Type"::"Credit memo" : BEGIN
+            IF recPHdr.GET(recPHdr."Document Type"::"Credit Memo","Document No") THEN BEGIN
+               IF recPHdr."Currency Factor"=0 THEN
+                  decFactor:=1
+               ELSE
+                  decFactor:=recPHdr."Currency Factor";
+               IF pBol THEN
+                  IF recPLine.GET(recPLine."Document Type"::"Credit Memo","Document No","Document Line") THEN BEGIN
+                     recPLine.SuspendStatusCheck(TRUE);
+                     recPLine.VALIDATE("Direct Unit Cost",pAmount);
+                     recPLine.MODIFY;
+                  END;
+            END;
+            EXIT(decFactor);
+          END;
+
+         "Document Type"::"Post Inv" : BEGIN
+            IF recPInv.GET("Document No") THEN BEGIN
+               IF recPInv."Currency Factor"=0 THEN
+                  decFactor:=1
+               ELSE
+                  decFactor:=recPInv."Currency Factor";
+               IF pBol THEN
+                  IF LeaseSetup."Modify Posted Invoice" THEN
+                     IF recPInvL.GET("Document No","Document Line") THEN BEGIN
+                        recPInvL.VALIDATE("Direct Unit Cost",pAmount);
+                        recPInvL.MODIFY;
+                     END;
+            END;
+            EXIT(decFactor);
+          END;
+
+         "Document Type"::"Post Cr memo" : BEGIN
+            IF recPCrM.GET("Document No") THEN BEGIN
+               IF recPCrM."Currency Factor"=0 THEN
+                  decFactor:=1
+               ELSE
+                  decFactor:=recPCrM."Currency Factor";
+               IF pBol THEN
+                  IF LeaseSetup."Modify Posted Invoice" THEN
+                     IF recPCrML.GET("Document No","Document Line") THEN BEGIN
+                        recPCrML.VALIDATE("Direct Unit Cost",pAmount);
+                        recPCrML.MODIFY;
+                     END;
+            END;
+            EXIT(decFactor);
+          END;
+      END;
+    END;
+
+    PROCEDURE IsInterestLine@1400002(precApply@1400000 : Record 50027) : Boolean;
+    BEGIN
+      CASE precApply.Type OF
+         Type::Interest,Type::"VAT interest",
+         Type::"Interest Service",Type::"VAT interest service" :
+            EXIT(TRUE);
+         ELSE
+            EXIT(FALSE);
+      END;
+    END;
+
+    PROCEDURE DrillDown@1400003();
+    VAR
+      iVendEntry@1400003 : Integer;
+      lrecVendLedg@1400002 : Record 25;
+      lrecVendDtl@1400001 : Record 380;
+      f@1000000000 : Page 574;
+    BEGIN
+      lrecVendLedg.RESET;
+      lrecVendLedg.SETCURRENTKEY("Document No.","Document Type","Vendor No.");
+      lrecVendLedg.SETRANGE("Document No.","Document No");
+      //lrecVendLedg.SETRANGE(Contract,TRUE);
+      CASE "Document Type" OF
+         "Document Type"::"Post Inv" :
+            lrecVendLedg.SETRANGE("Document Type",lrecVendLedg."Document Type"::Invoice);
+         "Document Type"::"Post Cr memo" :
+            lrecVendLedg.SETRANGE("Document Type",lrecVendLedg."Document Type"::"Credit Memo");
+         ELSE
+            EXIT;
+      END;
+      IF lrecVendLedg.FINDFIRST THEN BEGIN
+         iVendEntry:=lrecVendLedg."Entry No.";
+         lrecVendDtl.RESET;
+         lrecVendDtl.SETCURRENTKEY("Vendor Ledger Entry No.","Entry Type","Posting Date");
+         lrecVendDtl.FILTERGROUP(2);
+         lrecVendDtl.SETRANGE("Vendor Ledger Entry No.",iVendEntry);
+         lrecVendDtl.SETFILTER("Entry Type",'%1',lrecVendDtl."Entry Type"::Application);
+         lrecVendDtl.SETRANGE(Unapplied,FALSE);
+         lrecVendDtl.FILTERGROUP(0);
+         CLEAR(f);
+         f.SETTABLEVIEW(lrecVendDtl);
+         f.RUNMODAL;
+      END;
+    END;
+
+    PROCEDURE GetInvCreationDate@1400004(piEntry@1400000 : Integer) : Date;
+    VAR
+      iPayPlan@1400001 : Integer;
+      dtDate@1400002 : Date;
+      dtFormula@1400003 : DateFormula;
+      lrecPlan@1400004 : Record 50025;
+      cunCalc@1400005 : Codeunit 50051;
+      LSetup@1400006 : Record 50028;
+      recContract@1400007 : Record 50023;
+    BEGIN
+      IF piEntry=0 THEN EXIT(WORKDATE);
+      RESET;
+      SETCURRENTKEY("Entry No");
+      SETRANGE("Entry No",piEntry);
+      IF FIND('-') THEN
+         iPayPlan:="Payplan Entry"
+      ELSE
+         iPayPlan:=0;
+
+      IF recContract.GET("Contract No") THEN
+         IF recContract."Type Invoicing"=recContract."Type Invoicing"::EveryMonth THEN
+            EXIT(WORKDATE);
+
+      CASE Type OF
+        Type::Principal,Type::"VAT principal" : BEGIN
+           IF lrecPlan.GET(iPayPlan) THEN
+              dtDate:=lrecPlan."Due date"
+           ELSE
+              EXIT(WORKDATE);
+
+           LSetup.GET;
+           EVALUATE(dtFormula,'<-'+FORMAT(LSetup."Day before Due date")+'D>');
+
+           EXIT(cunCalc.CalcPaymentDateExt(dtDate,dtFormula,LSetup."Day type",1));
+        END
+        ELSE
+           EXIT(WORKDATE);
+      END;
+    END;
+
+    BEGIN
+    END.
+  }
+}
+
+OBJECT Table 50028 Lease Setup
+{
+  OBJECT-PROPERTIES
+  {
+    Date=30.03.22;
+    Time=15:55:11;
+    Modified=Yes;
+    Version List=DIS.143;
+  }
+  PROPERTIES
+  {
+  }
+  FIELDS
+  {
+    { 1   ;   ;Primary Key         ;Code10         }
+    { 2   ;   ;Lease Nos.          ;Code10        ;TableRelation="No. Series";
+                                                   CaptionML=[BGR=Номера на Лизинги;
+                                                              ENU=Lease no series];
+                                                   Description=BD }
+    { 3   ;   ;Account Principal   ;Code20        ;TableRelation="G/L Account";
+                                                   CaptionML=[BGR=Счетоводна сметка главница;
+                                                              ENU=Account principal] }
+    { 4   ;   ;Account Interest    ;Code20        ;TableRelation="G/L Account";
+                                                   CaptionML=[BGR=Счетоводна сметка лихва;
+                                                              ENU=Account Interest] }
+    { 5   ;   ;Account Principal Other;Code20     ;TableRelation="G/L Account";
+                                                   CaptionML=[BGR=Счетоводна сметка главница други;
+                                                              ENU=Account Principal Other] }
+    { 6   ;   ;Invoice Tolerance   ;Decimal       ;CaptionML=[BGR=Отклонение при фактуриране;
+                                                              ENU=Invoice tolerance];
+                                                   MinValue=0 }
+    { 7   ;   ;Modify Posted Invoice;Boolean      ;CaptionML=[BGR=Корекция на осч. фактури при поромяна лихвен процент;
+                                                              ENU=Modify posted invoice in modifed interest percent] }
+    { 8   ;   ;Payment Tolerance   ;Decimal       ;CaptionML=[BGR=Отклонение при плащане;
+                                                              ENU=Payment tolerance] }
+    { 9   ;   ;Day before Due date ;Integer       ;CaptionML=[BGR=Брой дни преди падеж;
+                                                              ENU=Day before due date] }
+    { 10  ;   ;Day type            ;Option        ;CaptionML=[BGR=Тип дни;
+                                                              ENU=Day type];
+                                                   OptionCaptionML=[BGR=Календарни,Работни;
+                                                                    ENU=Calendar,Work];
+                                                   OptionString=Calendar,Work }
+    { 23  ;   ;Operative Account Principal;Code20 ;TableRelation="G/L Account";
+                                                   CaptionML=[BGR=Счетоводна сметка главница - оперативен;
+                                                              ENU=Account principal - operative];
+                                                   Description=DIS.143 }
+    { 24  ;   ;Operative Account Interest;Code20  ;TableRelation="G/L Account";
+                                                   CaptionML=[BGR=Счетоводна сметка лихва - оперативен;
+                                                              ENU=Account Interest - operative];
+                                                   Description=DIS.143 }
+    { 25  ;   ;Operative Acc Principal Other;Code20;
+                                                   TableRelation="G/L Account";
+                                                   CaptionML=[BGR=Счетоводна сметка главница други - оперативен;
+                                                              ENU=Account Principal Other - operative];
+                                                   Description=DIS.143 }
+    { 26  ;   ;Dimension Lease     ;Code20        ;TableRelation=Dimension;
+                                                   CaptionML=[BGR=Аналитичност лизинг;
+                                                              ENU=Dimension lease] }
+    { 27  ;   ;Dimension Type SC   ;Code20        ;TableRelation=Dimension;
+                                                   CaptionML=[BGR=Аналитичност вид р-д/п-д;
+                                                              ENU=Dimension type S/C] }
+  }
+  KEYS
+  {
+    {    ;Primary Key                             ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    {
+      //31.01.2017 - krasi - [DIS143]
+        add fields "Operative Account Principal", "Operative Account Interest", "Operative Acc Principal Other"
+
+      //19.11.2018 - krasi
+        add field "dimension lease"
+      //30.03.2022 - krasi
+        add field "dimension type sc"
+    }
+    END.
+  }
+}
+
+OBJECT Table 50035 Lease Month Percent
+{
+  OBJECT-PROPERTIES
+  {
+    Date=28.11.14;
+    Time=11:07:08;
+    Modified=Yes;
+    Version List=DIS_LIZ;
+  }
+  PROPERTIES
+  {
+    OnInsert=BEGIN
+
+               TESTFIELD("Contract No");
+               IF Month<=0 THEN
+                  ERROR(Text005,FIELDCAPTION(Month));
+               IF (Percent<=0) OR (Percent>=100) THEN
+                  ERROR(Text007,FIELDCAPTION(Percent));
+               IF cunLeaseTool.GetStatusAction("Contract No",0,0)=0 THEN
+                  ERROR(Text001);
+             END;
+
+    OnModify=BEGIN
+
+               IF cunLeaseTool.GetStatusAction("Contract No",1,0)=0 THEN
+                  ERROR(Text002);
+             END;
+
+    OnDelete=BEGIN
+
+               IF cunLeaseTool.GetStatusAction("Contract No",2,0)=0 THEN
+                  ERROR(Text003);
+               IF Post THEN
+                  ERROR(Text006);
+             END;
+
+    OnRename=BEGIN
+
+               IF cunLeaseTool.GetStatusAction("Contract No",3,0)=0 THEN
+                  ERROR(Text004);
+             END;
+
+    CaptionML=[BGR=Лизинг Вноска Процент;
+               ENU=Lease Month Percent];
+  }
+  FIELDS
+  {
+    { 1   ;   ;Contract No         ;Code10        ;TableRelation="Lease Header" }
+    { 2   ;   ;Month               ;Integer       ;OnValidate=BEGIN
+                                                                IF Month<=0 THEN
+                                                                   Month:=xRec.Month;
+                                                              END;
+
+                                                   CaptionML=[BGR=Месец;
+                                                              ENU=Month] }
+    { 3   ;   ;Percent             ;Decimal       ;OnValidate=BEGIN
+                                                                IF (Percent<=0) OR (Percent>=100) THEN
+                                                                   Percent:=xRec.Percent;
+                                                              END;
+
+                                                   CaptionML=[BGR=Процент;
+                                                              ENU=percent] }
+    { 4   ;   ;Post                ;Boolean       ;CaptionML=[BGR=Осчетоводено;
+                                                              ENU=Post];
+                                                   Editable=No }
+  }
+  KEYS
+  {
+    {    ;Contract No,Month                       ;SumIndexFields=Percent;
+                                                   Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      cunLeaseTool@1000000000 : Codeunit 50019;
+      Text001@1000000007 : TextConst 'BGR=Статуса на договора не позволява вмъкване;ENU=Lease status do not allow insert';
+      Text002@1000000006 : TextConst 'BGR=Статуса на договора не позволява промяна;ENU=Lease status do not allow modify';
+      Text003@1000000005 : TextConst 'BGR=Статуса на договора не позволява изтриване;ENU=Lease status do not allow delete';
+      Text004@1000000004 : TextConst 'BGR=Статуса на договора не позволява преименуване;ENU=Lease status do not allow rename';
+      Text005@1000000003 : TextConst 'BGR=Полето %1 трябва да е положително;ENU=The Field %1 must be positive';
+      Text006@1000000002 : TextConst 'BGR=Вноската вече е осчетоводена;ENU=The payment is posted already';
+      Text007@1000000001 : TextConst 'BGR=%1 трябва да е в диапазона (0..100);ENU=%1 must be in range (0..100)';
+
+    BEGIN
+    END.
+  }
+}
+

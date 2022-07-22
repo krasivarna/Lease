@@ -1,0 +1,1372 @@
+OBJECT Codeunit 50019 Lease Tools
+{
+  OBJECT-PROPERTIES
+  {
+    Date=11.12.20;
+    Time=17:02:57;
+    Modified=Yes;
+    Version List=DIS_LIZ.181.201;
+  }
+  PROPERTIES
+  {
+    OnRun=BEGIN
+          END;
+
+  }
+  CODE
+  {
+    VAR
+      Text001@1000000002 : TextConst 'BGR=Статуса на договора не позволява генериране на план;ENU=Lease status do not allow generate payiff plan';
+      Text002@1000000001 : TextConst 'BGR=Статуса на договора не позволява попълване на дати падеж;ENU=Lease status do not allow filled due dates';
+      Text003@1000000000 : TextConst 'BGR=Статуса на договора не позволява попълване на стойности;ENU=Lease status do not allow filled values';
+
+    PROCEDURE GeneratePayOffPlan@1400000(precLease@1400000 : Record 50023;popType@1400006 : Option;piNewMonth@1400014 : Integer;pbAuto@1400019 : Boolean) : Boolean;
+    VAR
+      recDetail@1400001 : Record 50024;
+      recLeaseHdr@1400002 : Record 50023;
+      i@1400003 : Integer;
+      lText001@1400004 : TextConst 'BGR=Липсва %1;ENU=Missing %1';
+      recPayOff@1400005 : Record 50025;
+      iCountGrace@1400007 : Integer;
+      j@1400008 : Integer;
+      iType@1400009 : Integer;
+      iPeriod@1400010 : Integer;
+      iGPeriod@1400011 : Integer;
+      iBegin@1400012 : Integer;
+      jj@1400013 : Integer;
+      iStart@1400015 : Integer;
+      recPay@1400017 : Record 50025;
+      iLastGPeriod@1400018 : Integer;
+      iOffsetMonth@1400016 : Integer;
+    BEGIN
+      //popType
+      //0 - New plan
+      //1 - Update Due date
+
+      //iType - 0 - plan for principal
+
+      //iType - 1 - plan for principal vat
+
+      //iType - 2 - Begin payment
+
+      //iType - 3 - plan for Service
+
+      //iType - 4 - plan for Service vat
+
+      //iNewMonth - Insert new payments
+
+      //bAuto     - Manaul / Auto (System)
+
+      recLeaseHdr.COPY(precLease);
+
+      recLeaseHdr.TESTFIELD("Principal Period");
+      IF popType=1 THEN BEGIN
+         recLeaseHdr.TESTFIELD("Begin PayOff Date");
+         IF NOT pbAuto THEN
+            IF GetStatusAction(recLeaseHdr."Contract No",0,0)=0 THEN
+               ERROR(Text002);
+      END ELSE
+         IF NOT pbAuto THEN
+            IF GetStatusAction(recLeaseHdr."Contract No",0,0)=0 THEN
+               ERROR(Text001);
+
+      IF recLeaseHdr."Type Invoicing"=recLeaseHdr."Type Invoicing"::InBegin THEN BEGIN
+         recLeaseHdr.TESTFIELD("Principal Excl VAT");
+         recLeaseHdr.TESTFIELD("Principal Incl VAT");
+         IF recLeaseHdr."Principal Incl VAT"-recLeaseHdr."Principal Excl VAT">0 THEN BEGIN
+            recLeaseHdr.TESTFIELD("VAT Period");
+            iType:=1;
+         END ELSE
+            iType:=0;
+      END ELSE
+         iType:=0;
+
+      IF piNewMonth=0 THEN BEGIN
+         iBegin:=recLeaseHdr."Count Begin";
+         IF iBegin>0 THEN BEGIN
+            iBegin:=-iBegin;
+            FOR i:=iBegin TO -1 DO BEGIN
+                recPayOff.IfExists(recLeaseHdr."Contract No",0,i,2);
+                IF NOT recPayOff.FIND('-') THEN BEGIN
+                   recPayOff."Contract No":=recLeaseHdr."Contract No";
+                   recPayOff."Contract Line":=0;
+                   recPayOff.Month:=i;
+                   recPayOff."Amount Type":=2;
+                   recPayOff."Vendor No":=recLeaseHdr."Vendor No";
+                   recPayOff.INSERT(TRUE);
+                END;
+            END;
+         END;
+      END;
+
+      iOffsetMonth:=recLeaseHdr."No First Month";
+
+      recDetail.RESET;
+      recDetail.SETRANGE("Contract No",recLeaseHdr."Contract No");
+      IF recDetail.FIND('-') THEN
+         REPEAT
+            IF piNewMonth=0 THEN
+               iStart:=iOffsetMonth
+            ELSE
+               iStart:=piNewMonth;
+            FOR j:=0 TO iType DO BEGIN
+
+               iLastGPeriod:=0;
+
+               IF recDetail."Vehicle Type"=recDetail."Vehicle Type"::Service THEN BEGIN
+                  IF j=0 THEN
+                     jj:=3
+                  ELSE
+                     jj:=4;
+               END ELSE
+                  jj:=j;
+
+               CASE j OF
+                  0: BEGIN
+                        iPeriod:=recLeaseHdr."Principal Period";
+                        iGPeriod:=recLeaseHdr."Principal Grace Period"
+                     END;
+                  1: BEGIN
+                        iPeriod:=recLeaseHdr."VAT Period";
+                        iGPeriod:=recLeaseHdr."VAT Grace Period"
+                     END;
+               END;
+
+               IF (piNewMonth<>0) AND (iGPeriod<>0) THEN BEGIN
+                  recPay.RESET;
+                  recPay.SETCURRENTKEY(bCancel,"Contract No","Contract Line",Month,"Amount Type");
+                  recPay.SETRANGE("Contract No",recDetail."Contract No");
+                  recPay.SETRANGE("Contract Line",recDetail."Line No");
+                  recPay.SETRANGE(bCancel,FALSE);
+                  recPay.SETRANGE("Amount Type",jj);
+                  recPay.SETRANGE("Entry Type",recPay."Entry Type"::Interest);
+                  iLastGPeriod:=recPay.COUNT;
+               END;
+
+               iCountGrace:=iLastGPeriod;
+               iPeriod:=iPeriod+iOffsetMonth-1;
+
+               FOR i:=iStart TO iPeriod DO BEGIN
+                  recPayOff.IfExists(recDetail."Contract No",
+                                     recDetail."Line No",
+                                     i,jj);
+                  IF NOT recPayOff.FINDFIRST THEN BEGIN
+                     recPayOff."Contract No":=recDetail."Contract No";
+                     recPayOff."Vendor No":=recLeaseHdr."Vendor No";
+                     recPayOff."FA No":=recDetail."FA No";
+                     recPayOff."Contract Line":=recDetail."Line No";
+                     recPayOff.Month:=i;
+                     IF (iGPeriod>0) AND (iCountGrace<iGPeriod) THEN BEGIN
+                        iCountGrace+=1;
+                        recPayOff."Entry Type":=recPayOff."Entry Type"::Interest
+                     END ELSE
+                        recPayOff."Entry Type":=recPayOff."Entry Type"::Both;
+                     recPayOff."Amount Type":=jj;
+                     recPayOff.INSERT(TRUE);
+                  END;
+                  CASE popType OF
+                     1 : BEGIN
+                         recPayOff."Due date":=CALCDATE('<+'+FORMAT(i-iOffsetMonth)+'M>',recLeaseHdr."Begin PayOff Date");
+                         recPayOff.MODIFY;
+                     END;
+                  END;
+               END;
+            END;
+         UNTIL recDetail.NEXT=0;
+      EXIT(TRUE);
+    END;
+
+    PROCEDURE CalcDetailPrincipal@1400001(precLease@1400000 : Record 50023) : Boolean;
+    VAR
+      lText001@1400001 : TextConst 'BGR=Няма въведени редове в договора;ENU=None lines contract';
+      recLeaseHdr@1400002 : Record 50023;
+      recLeaseAmt@1400003 : Record 50026;
+      recDetail@1400004 : Record 50024;
+      lText002@1400005 : TextConst 'BGR=Няма въведени главници за типовете превозни средства;ENU=None for the principal types of vehicles';
+      decForLeaseIncl@1400006 : Decimal;
+      lText003@1400007 : TextConst 'BGR=Сумата за лизинг без ДДС се различава с тази по редовете (%1 <-> %2)';
+      decTotalIncl@1400008 : Decimal;
+      lText004@1400009 : TextConst 'BGR=Липсва главница за %1;ENU=Missing principal for %1';
+      decForLeaseExcl@1400012 : Decimal;
+      decTotalExcl@1400011 : Decimal;
+      lText005@1400010 : TextConst 'BGR=Сумата за лизинг с ДДС се различава с тази по редовете (%1 <-> %2)';
+    BEGIN
+      recLeaseHdr.COPY(precLease);
+      recLeaseHdr.TESTFIELD("Principal Excl VAT");
+      recLeaseHdr.TESTFIELD("Principal Incl VAT");
+      recLeaseHdr.TESTFIELD("Principal Interest %");
+      recLeaseHdr.TESTFIELD("Principal Period");
+
+      decForLeaseIncl:=recLeaseHdr."Principal Incl VAT"-recLeaseHdr."Begin Payment Incl VAT";
+      decForLeaseExcl:=recLeaseHdr."Principal Excl VAT"-recLeaseHdr."Begin Payment Excl VAT";
+      decTotalIncl:=0;
+      decTotalExcl:=0;
+      recLeaseAmt.RESET;
+      recLeaseAmt.SETRANGE("Contract No",recLeaseHdr."Contract No");
+      IF NOT recLeaseAmt.FINDSET THEN BEGIN
+         MESSAGE(lText002);
+         EXIT(FALSE);
+      END ELSE BEGIN
+         REPEAT
+            recLeaseAmt.TESTFIELD("Amount Incl VAT");
+            recLeaseAmt.TESTFIELD("Amount Excl VAT");
+            recLeaseAmt.CALCFIELDS(Count);
+            decTotalIncl+=recLeaseAmt."Amount Incl VAT"*recLeaseAmt.Count;
+            decTotalExcl+=recLeaseAmt."Amount Excl VAT"*recLeaseAmt.Count;
+         UNTIL recLeaseAmt.NEXT=0;
+         IF (decTotalExcl<>decForLeaseExcl) THEN BEGIN
+            MESSAGE(lText003,decForLeaseExcl,decTotalExcl);
+            EXIT(FALSE);
+         END;
+         IF (decTotalIncl<>decForLeaseIncl) THEN BEGIN
+            MESSAGE(lText005,decForLeaseIncl,decTotalIncl);
+            EXIT(FALSE);
+         END;
+      END;
+
+      recDetail.RESET;
+      recDetail.SETRANGE("Contract No",recLeaseHdr."Contract No");
+      IF recDetail.FINDSET THEN BEGIN
+         REPEAT
+           IF recLeaseAmt.GET(recDetail."Contract No",recDetail."Vehicle Type") THEN BEGIN
+              recDetail."Principal Excl VAT":=recLeaseAmt."Amount Excl VAT";
+              recDetail."Principal Incl VAT":=recLeaseAmt."Amount Incl VAT";
+              recDetail."Last Payment Excl VAT":=recLeaseAmt."Last Payment Excl VAT";
+              recDetail."Last Payment Incl VAT":=recLeaseAmt."Last Payment Incl VAT";
+           END ELSE
+              ERROR(lText004,recDetail."Vehicle Type");
+           IF recDetail.MODIFY THEN BEGIN
+              CalcPayOffPlan(recDetail,recLeaseHdr,0,FALSE,FALSE);
+              CalcPayOffPlan(recDetail,recLeaseHdr,1,FALSE,FALSE);
+              CalcPayOffPlan(recDetail,recLeaseHdr,3,FALSE,FALSE);
+              CalcPayOffPlan(recDetail,recLeaseHdr,4,FALSE,FALSE);
+           END;
+         UNTIL recDetail.NEXT=0;
+         EXIT(TRUE);
+      END ELSE
+         MESSAGE(lText001);
+      EXIT(FALSE);
+    END;
+
+    PROCEDURE CalcPayOffPlan@1400002(pDetail@1400000 : Record 50024;pHdr@1400001 : Record 50023;pType@1400012 : Option;pCalc@1400015 : Boolean;pReoffer@1400040 : Boolean) : Integer;
+    VAR
+      decPrincipalExcl@1400003 : Decimal;
+      decPrincipalIncl@1400022 : Decimal;
+      decAmountExcl@1400004 : Decimal;
+      decAmountIncl@1400021 : Decimal;
+      decInterestExcl@1400006 : Decimal;
+      decInterestIncl@1400023 : Decimal;
+      decTotalPrincipalExcl@1400008 : Decimal;
+      decTotalPrincipalIncl@1400024 : Decimal;
+      decBeginExcl@1400013 : Decimal;
+      decBeginIncl@1400020 : Decimal;
+      decCurrentPrincipalExcl@1400017 : Decimal;
+      decCurrentPrincipalIncl@1400019 : Decimal;
+      decPaymentExcl@1400010 : Decimal;
+      decPaymentIncl@1400025 : Decimal;
+      iPeriod@1400009 : Integer;
+      decKoef@1400011 : Decimal;
+      MaxMonth@1400014 : Integer;
+      CurrentMonth@1400016 : Integer;
+      iCorrectPeriod@1400018 : Integer;
+      recPayOff@1400005 : Record 50025;
+      recCurrency@1400007 : Record 4;
+      bolVATPlan@1400027 : Boolean;
+      bolIntWithVAT@1400028 : Boolean;
+      recLeaseAmount@1400026 : Record 50026;
+      bolWithVAT@1400029 : Boolean;
+      ldecIntExcl@1400030 : Decimal;
+      iLastPeriod@1400031 : Integer;
+      decLastIncl@1400032 : Decimal;
+      decLastExcl@1400033 : Decimal;
+      ldecIntIncl@1400034 : Decimal;
+      bolBeforeLast@1400035 : Boolean;
+      decTotalPayExcl@1400036 : Decimal;
+      decTotalPayIncl@1400037 : Decimal;
+      decCurrPayIncl@1400038 : Decimal;
+      decCurrPayExcl@1400039 : Decimal;
+      recPay@1400041 : Record 50025;
+      iLastGPeriod@1400042 : Integer;
+      iOffsetMonth@1400043 : Integer;
+      iFixedPeriod@1400044 : Integer;
+      decAmountExclFixed@1400045 : Decimal;
+      decAmountInclFixed@1400046 : Decimal;
+      decAllFixedExcl@1400047 : Decimal;
+      decAllFixedIncl@1400048 : Decimal;
+      bolOk@1400049 : Boolean;
+      recLeasePercent@1400050 : Record 50035;
+      decPercent@1400051 : Decimal;
+      bolLast@1400052 : Boolean;
+      decBeforeAmountExcl@1400053 : Decimal;
+      decBeforeAmountIncl@1400054 : Decimal;
+      lrecPayOff@1400057 : Record 50025;
+      iLastEntry@1400055 : Integer;
+      SetLastPayment@50000 : Boolean;
+    BEGIN
+      //pType - 0 - payoff plan principal
+      //ptype - 1 - payoff plan vat
+      //ptype - 3 - payoff plan service
+      //ptype - 4 - payoff plan service vat
+
+      //pCalc - False - No action
+      //pCalc - True  - Calculate pay off plan again
+
+      //pReoffer - False - No action
+      //pReoffer - True - Check for Interest after CurrentMonth
+
+      IF NOT pCalc THEN
+         IF GetStatusAction(pHdr."Contract No",0,0)=0 THEN
+            ERROR(Text003);
+
+      bolIntWithVAT:=pHdr.IsHaveIntVAT(pHdr);
+      bolVATPlan:=pHdr.IsHaveVATplan(pHdr);
+      bolWithVAT:=pHdr.IsHaveVAT(pHdr);
+      iOffsetMonth:=pHdr."No First Month"-1;
+
+      iCorrectPeriod:=0;
+      CurrentMonth:=0;
+      decCurrentPrincipalExcl:=0;
+      decCurrentPrincipalIncl:=0;
+      bolBeforeLast:=FALSE;
+      bolLast:=FALSE;
+
+      IF bolVATPlan AND (pType=1) THEN
+         pHdr.TESTFIELD("VAT Interest %");
+
+      IF pCalc THEN BEGIN
+         CurrentMonth:=GetMonth(pDetail."Contract No",pDetail."Line No",pType,pHdr."Date Modify Percent",0)+1;
+         recPayOff.RESET;
+         recPayOff.SETCURRENTKEY(bCancel,"Contract No","Contract Line",Month);
+         recPayOff.SETRANGE("Contract No",pDetail."Contract No");
+         recPayOff.SETRANGE("Contract Line",pDetail."Line No");
+         recPayOff.SETFILTER(Month,'<%1',CurrentMonth);
+         recPayOff.SETRANGE("Amount Type",pType);
+         recPayOff.SETRANGE(bCancel,FALSE);
+         recPayOff.CALCSUMS("Principal Excl VAT","Principal Incl VAT");
+         decCurrentPrincipalExcl:=recPayOff."Principal Excl VAT";
+         decCurrentPrincipalIncl:=recPayOff."Principal Incl VAT";
+      END;
+
+      IF pHdr."Currency Code"<>'' THEN BEGIN
+         IF NOT recCurrency.GET(pHdr."Currency Code") THEN
+            recCurrency.InitRoundingPrecision;
+      END ELSE
+         recCurrency.InitRoundingPrecision;
+
+      IF pDetail."Last Payment Excl VAT"<>0 THEN
+         iLastPeriod:=1
+      ELSE
+         iLastPeriod:=0;
+
+      iLastGPeriod:=0;
+      IF pCalc THEN BEGIN
+         recPay.RESET;
+         recPay.SETCURRENTKEY(bCancel,"Contract No","Contract Line",Month,"Amount Type");
+         recPay.SETRANGE("Contract No",pDetail."Contract No");
+         recPay.SETRANGE("Contract Line",pDetail."Line No");
+         recPay.SETRANGE(bCancel,FALSE);
+         recPay.SETFILTER(Month,'>=%1',CurrentMonth);
+         recPay.SETRANGE("Amount Type",pType);
+         recPay.SETRANGE("Entry Type",recPay."Entry Type"::Interest);
+         IF recPay.FINDLAST THEN
+            iLastGPeriod:=recPay.Month;
+         iLastGPeriod:=iLastGPeriod-CurrentMonth+1;
+         IF iLastGPeriod<0 THEN iLastGPeriod:=0;
+      END;
+
+      //If has Fixed payemnts
+      recLeasePercent.RESET;
+      recLeasePercent.SETRANGE("Contract No",pDetail."Contract No");
+      recLeasePercent.SETRANGE(Post,FALSE);
+      recLeasePercent.SETFILTER(Month,'>=%1',CurrentMonth);
+      iFixedPeriod:=recLeasePercent.COUNT;
+      //
+
+      CASE pType OF
+         0,3: BEGIN
+            decLastIncl:=pDetail."Last Payment Incl VAT";
+            decLastExcl:=pDetail."Last Payment Excl VAT";
+            decBeginExcl:=pDetail."Principal Excl VAT"-decCurrentPrincipalExcl;
+            decAmountExcl:=pDetail."Principal Excl VAT"-decCurrentPrincipalExcl;
+            decBeginIncl:=pDetail."Principal Incl VAT"-decCurrentPrincipalIncl;
+            decAmountIncl:=pDetail."Principal Incl VAT"-decCurrentPrincipalIncl;
+            IF pCalc THEN BEGIN
+               iCorrectPeriod:=CurrentMonth-pHdr."Principal Grace Period"-1+iLastGPeriod-iOffsetMonth;
+               IF iCorrectPeriod<0 THEN iCorrectPeriod:=0;
+            END;
+            iPeriod:=pHdr."Principal Period"-pHdr."Principal Grace Period"-iCorrectPeriod-iLastPeriod;
+            decKoef:=(pHdr."Principal Interest %"/100)/12;
+         END;
+         1,4: BEGIN
+            decLastExcl:=pDetail."Last Payment Incl VAT"-pDetail."Last Payment Excl VAT";
+            decBeginExcl:=(pDetail."Principal Incl VAT"-pDetail."Principal Excl VAT")-
+                          decCurrentPrincipalExcl;
+            decAmountExcl:=(pDetail."Principal Incl VAT"-pDetail."Principal Excl VAT")-
+                           decCurrentPrincipalExcl;
+            decBeginIncl:=0;
+            decAmountIncl:=0;
+            decLastIncl:=0;
+            IF pCalc THEN BEGIN
+               iCorrectPeriod:=CurrentMonth-pHdr."VAT Grace Period"-1+iLastGPeriod-iOffsetMonth;
+               IF iCorrectPeriod<0 THEN iCorrectPeriod:=0;
+            END;
+            iPeriod:=pHdr."VAT Period"-pHdr."VAT Grace Period"-iCorrectPeriod-iLastPeriod;
+            decKoef:=(pHdr."VAT Interest %"/100)/12;
+         END;
+      END;
+
+      CASE pHdr."Type Payment" OF
+         pHdr."Type Payment"::EqPrincipal :
+            IF iPeriod>0 THEN BEGIN
+               decPrincipalExcl:=ROUND((decAmountExcl-decLastExcl)/iPeriod,recCurrency."Amount Rounding Precision");
+               decPrincipalIncl:=ROUND((decAmountIncl-decLastIncl)/iPeriod,recCurrency."Amount Rounding Precision");
+               IF iFixedPeriod>0 THEN BEGIN
+                  decPercent:=0;
+                  IF recLeasePercent.FIND('-') THEN
+                     REPEAT
+                        decPercent+=recLeasePercent.Percent;
+                     UNTIL recLeasePercent.NEXT=0;
+                  decAllFixedExcl:=ROUND(decPrincipalExcl*decPercent/100,recCurrency."Amount Rounding Precision");
+                  decAllFixedIncl:=ROUND(decPrincipalIncl*decPercent/100,recCurrency."Amount Rounding Precision");
+                  decAmountExclFixed:=decPrincipalExcl;
+                  decAmountInclFixed:=decPrincipalIncl;
+                  iPeriod:=iPeriod-iFixedPeriod;
+                  decPrincipalExcl:=ROUND((decAmountExcl-decAllFixedExcl-decLastExcl)/iPeriod,recCurrency."Amount Rounding Precision");
+                  decPrincipalIncl:=ROUND((decAmountIncl-decAllFixedIncl-decLastIncl)/iPeriod,recCurrency."Amount Rounding Precision");
+               END;
+            END;
+         pHdr."Type Payment"::EqPayment :
+            IF iPeriod>0 THEN BEGIN
+               decPaymentExcl:=(decKoef*decAmountExcl*POWER(1+decKoef,iPeriod)-decLastExcl*decKoef)/(POWER(1+decKoef,iPeriod)-1);
+               decPaymentIncl:=(decKoef*decAmountIncl*POWER(1+decKoef,iPeriod)-decLastIncl*decKoef)/(POWER(1+decKoef,iPeriod)-1);
+
+      //22.11.2014 - krasi
+               CASE pHdr."Loan paid" OF
+                 pHdr."Loan paid"::_begin : BEGIN
+                   IF NOT pCalc THEN BEGIN
+                     decPaymentExcl:=decPaymentExcl/(1+decKoef);
+                     decPaymentIncl:=decPaymentIncl/(1+decKoef);
+                   END;
+                   decBeforeAmountExcl:=decAmountExcl;
+                   decBeforeAmountIncl:=decAmountIncl;
+                   IF NOT pCalc THEN BEGIN
+                     decAmountExcl:=0;
+                     decAmountIncl:=0;
+                   END;
+                 END;
+      //19.06.2018 - krasi
+                 pHdr."Loan paid"::_begin_1 : BEGIN
+                   IF NOT pCalc THEN BEGIN
+                     decPaymentExcl:=decPaymentExcl/(1+decKoef);
+                     decPaymentIncl:=decPaymentIncl/(1+decKoef);
+                   END;
+                 END;
+      //
+               END;
+               decTotalPayIncl:=ROUND(decPaymentIncl*iPeriod,recCurrency."Amount Rounding Precision");
+               decTotalPayExcl:=ROUND(decPaymentExcl*iPeriod,recCurrency."Amount Rounding Precision");
+               decPaymentExcl:=ROUND(decPaymentExcl,recCurrency."Amount Rounding Precision");
+               decPaymentIncl:=ROUND(decPaymentIncl,recCurrency."Amount Rounding Precision");
+            END;
+      END;
+
+      decTotalPrincipalExcl:=0;
+      decInterestExcl:=0;
+      decTotalPrincipalIncl:=0;
+      decInterestIncl:=0;
+      ldecIntExcl:=0;
+      ldecIntIncl:=0;
+      decCurrPayIncl:=0;
+      decCurrPayExcl:=0;
+
+      recPayOff.RESET;
+      recPayOff.SETCURRENTKEY(bCancel,"Contract No","Contract Line",Month);
+      recPayOff.SETRANGE("Contract No",pDetail."Contract No");
+      recPayOff.SETRANGE("Contract Line",pDetail."Line No");
+      recPayOff.SETRANGE(bCancel,FALSE);
+      IF pCalc THEN
+         recPayOff.SETFILTER(Month,'>=%1',CurrentMonth);
+      recPayOff.SETRANGE("Amount Type",pType);
+      IF recPayOff.FINDLAST THEN
+         MaxMonth:=recPayOff.Month
+      ELSE
+         MaxMonth:=0;
+
+      IF recPayOff.FIND('-') THEN
+         REPEAT
+      //11.12.2020 - krasi
+            SetLastPayment:=FALSE;
+      //
+            CASE pHdr."Type Payment" OF
+               pHdr."Type Payment"::EqPrincipal : BEGIN
+                  IF iLastPeriod>0 THEN BEGIN
+                     CASE recPayOff.Month OF
+                        MaxMonth: BEGIN
+                           decPrincipalExcl:=decLastExcl;
+                           decPrincipalIncl:=decLastIncl;
+                           decKoef:=0;
+      //11.12.2020 - krasi
+                           SetLastPayment:=TRUE;
+      //
+                         END;
+                        MaxMonth-iLastPeriod: BEGIN
+                           decPrincipalExcl:=decBeginExcl-decTotalPrincipalExcl-decLastExcl;
+                           decPrincipalIncl:=decBeginIncl-decTotalPrincipalIncl-decLastIncl;
+                         END;
+                     END;
+                  END ELSE BEGIN
+                     IF recPayOff.Month=MaxMonth THEN BEGIN
+                        decPrincipalExcl:=decBeginExcl-decTotalPrincipalExcl;
+                        decPrincipalIncl:=decBeginIncl-decTotalPrincipalIncl;
+                     END;
+                  END;
+
+                  decInterestExcl:=ROUND(decAmountExcl*decKoef,recCurrency."Amount Rounding Precision");
+
+                  IF bolIntWithVAT THEN
+                     IF recLeaseAmount.GET(pDetail."Contract No",pDetail."Vehicle Type") THEN
+                        decInterestIncl:=ROUND(decInterestExcl*(1+recLeaseAmount."VAT %"/100),recCurrency."Amount Rounding Precision");
+
+                  IF recPayOff."Entry Type"=recPayOff."Entry Type"::Both THEN BEGIN
+                     IF iFixedPeriod=0 THEN BEGIN
+                        bolOk:=TRUE
+                     END ELSE
+                        IF recLeasePercent.GET(pDetail."Contract No",recPayOff.Month) THEN  BEGIN
+                           decAllFixedExcl:=ROUND(decAmountExclFixed*recLeasePercent.Percent/100,recCurrency."Amount Rounding Precision");
+                           decAllFixedIncl:=ROUND(decAmountInclFixed*recLeasePercent.Percent/100,recCurrency."Amount Rounding Precision");
+
+                           decTotalPrincipalExcl+=decAllFixedExcl;
+                           decTotalPrincipalIncl+=decAllFixedIncl;
+                           recPayOff."Principal Excl VAT":=decAllFixedExcl;
+                           IF NOT bolVATPlan THEN
+                              recPayOff."Principal Incl VAT":=decAllFixedIncl;
+                           decAmountExcl-=decAllFixedExcl;
+                           decAmountIncl-=decAllFixedIncl;
+                           bolOk:=FALSE;
+                        END ELSE
+                           bolOk:=TRUE;
+                     IF bolOk THEN BEGIN
+                        decTotalPrincipalExcl+=decPrincipalExcl;
+                        decTotalPrincipalIncl+=decPrincipalIncl;
+                        recPayOff."Principal Excl VAT":=decPrincipalExcl;
+                        IF NOT bolVATPlan THEN
+                           recPayOff."Principal Incl VAT":=decPrincipalIncl;
+                        decAmountExcl-=decPrincipalExcl;
+                        decAmountIncl-=decPrincipalIncl;
+                     END;
+                  END;
+                  recPayOff."Rem Principal Excl VAT":=decAmountExcl;
+                  IF NOT bolVATPlan THEN
+                     recPayOff."Rem Principal Incl VAT":=decAmountIncl;
+                  recPayOff."Interest Excl VAT":=decInterestExcl;
+                  recPayOff."Interest Incl VAT":=decInterestIncl;
+               END;
+
+               pHdr."Type Payment"::EqPayment : BEGIN
+                  IF bolVATPlan THEN BEGIN
+                     decInterestExcl:=ROUND(decAmountExcl*decKoef,recCurrency."Amount Rounding Precision");
+                     ldecIntExcl:=decInterestExcl;
+                  END ELSE BEGIN
+      //19.06.2018 - krasi
+                     CASE pHdr."Loan paid" OF
+                       pHdr."Loan paid"::_begin_1 : BEGIN
+                         decInterestExcl:=ROUND((decAmountExcl-decPaymentExcl)*decKoef,recCurrency."Amount Rounding Precision");
+                         ldecIntExcl:=ROUND((decAmountExcl-decPaymentExcl)*decKoef,recCurrency."Amount Rounding Precision");
+                         ldecIntIncl:=ROUND((decAmountIncl-decPaymentIncl)*decKoef,recCurrency."Amount Rounding Precision");
+                       END;
+                       ELSE
+                         decInterestExcl:=ROUND(decAmountExcl*decKoef,recCurrency."Amount Rounding Precision");
+                         ldecIntExcl:=ROUND(decAmountExcl*decKoef,recCurrency."Amount Rounding Precision");
+                         ldecIntIncl:=ROUND(decAmountIncl*decKoef,recCurrency."Amount Rounding Precision");
+                     END;
+      //
+                  END;
+
+                  IF iLastPeriod>0 THEN BEGIN
+                     CASE recPayOff.Month OF
+                        MaxMonth: BEGIN
+                           decPaymentExcl:=decLastExcl;
+                           decPaymentIncl:=decLastIncl;
+                           decKoef:=0;
+                           bolLast:=TRUE;
+      //11.12.2020 - krasi
+                           SetLastPayment:=TRUE;
+      //
+                         END;
+                        MaxMonth-iLastPeriod: BEGIN
+                           decPaymentExcl:=decBeginExcl-decTotalPrincipalExcl-decLastExcl;
+                           decPaymentIncl:=decBeginIncl-decTotalPrincipalIncl-decLastIncl;
+                           bolBeforeLast:=TRUE;
+                         END;
+                     END;
+                  END ELSE BEGIN
+                     IF recPayOff.Month=MaxMonth THEN BEGIN
+                        decPaymentExcl:=decBeginExcl-decTotalPrincipalExcl+ldecIntExcl;
+                        decPaymentIncl:=decBeginIncl-decTotalPrincipalIncl+ldecIntIncl;
+                     END;
+                  END;
+
+                  IF bolIntWithVAT THEN
+                     IF recLeaseAmount.GET(pDetail."Contract No",pDetail."Vehicle Type") THEN BEGIN
+                        decInterestIncl:=ROUND(decInterestExcl*(1+recLeaseAmount."VAT %"/100),recCurrency."Amount Rounding Precision");
+                        ldecIntIncl:=decInterestIncl;
+                     END;
+
+                  IF recPayOff."Entry Type"=recPayOff."Entry Type"::Both THEN BEGIN
+                     IF bolBeforeLast THEN BEGIN
+                        ldecIntExcl:=0;
+                        ldecIntIncl:=0;
+                        bolBeforeLast:=FALSE;
+                     END;
+                     IF bolLast THEN BEGIN
+                        ldecIntExcl:=0;
+                        ldecIntIncl:=0;
+                     END;
+                     decPrincipalExcl:=ROUND(decPaymentExcl-ldecIntExcl,recCurrency."Amount Rounding Precision");
+                     IF bolWithVAT THEN
+                        decPrincipalIncl:=ROUND(decPaymentIncl-ldecIntIncl,recCurrency."Amount Rounding Precision")
+                     ELSE
+                        decPrincipalIncl:=decPrincipalExcl;
+                     decTotalPrincipalExcl+=decPrincipalExcl;
+                     decTotalPrincipalIncl+=decPrincipalIncl;
+                     recPayOff."Principal Excl VAT":=decPrincipalExcl;
+                     IF NOT bolVATPlan THEN
+                        recPayOff."Principal Incl VAT":=decPrincipalIncl;
+
+      //22.11.2014 - krasi
+                    CASE pHdr."Loan paid" OF
+                       pHdr."Loan paid"::_end : BEGIN
+                          decAmountExcl-=decPrincipalExcl;
+                          decAmountIncl-=decPrincipalIncl;
+                          recPayOff."Rem Principal Excl VAT":=decAmountExcl;
+                          IF NOT bolVATPlan THEN
+                             recPayOff."Rem Principal Incl VAT":=decAmountIncl;
+                          IF bolLast THEN BEGIN
+                             decInterestExcl:=0;
+                             decInterestIncl:=0;
+                          END;
+                       END;
+
+                       pHdr."Loan paid"::_begin : BEGIN
+                          IF decAmountExcl=0 THEN BEGIN
+                             decAmountExcl:=decBeforeAmountExcl;
+                             decAmountIncl:=decBeforeAmountIncl;
+                          END;
+
+                          IF bolLast THEN BEGIN
+                             decAmountExcl:=0;
+                             decAmountIncl:=0;
+      //01.06.2018 - krasi
+                             IF NOT pCalc THEN
+      //
+                               IF lrecPayOff.GET(iLastEntry) THEN BEGIN
+                                 lrecPayOff."Interest Excl VAT"+=decInterestExcl;
+                                 lrecPayOff."Interest Incl VAT"+=decInterestIncl;
+                                 lrecPayOff.MODIFY;
+                               END;
+                             decInterestExcl:=0;
+                             decInterestIncl:=0;
+                          END;
+
+                          recPayOff."Rem Principal Excl VAT":=decAmountExcl;
+                          IF NOT bolVATPlan THEN
+                             recPayOff."Rem Principal Incl VAT":=decAmountIncl;
+                          decAmountExcl-=decPrincipalExcl;
+                          decAmountIncl-=decPrincipalIncl;
+                       END;
+      //19.06.2018 - krasi
+                       pHdr."Loan paid"::_begin_1 : BEGIN
+                         decAmountExcl-=decPrincipalExcl;
+                         decAmountIncl-=decPrincipalIncl;
+                         recPayOff."Rem Principal Excl VAT":=decAmountExcl;
+                         IF NOT bolVATPlan THEN
+                           recPayOff."Rem Principal Incl VAT":=decAmountIncl;
+                         IF bolLast THEN BEGIN
+                           decInterestExcl:=0;
+                           decInterestIncl:=0;
+                         END;
+                       END;
+      //
+                     END;
+                     IF bolLast THEN bolLast:=FALSE;
+      //
+
+                     decCurrPayExcl+=decPaymentExcl;
+                     decCurrPayIncl+=decPaymentIncl;
+                  END;
+                  recPayOff."Interest Excl VAT":=decInterestExcl;
+                  recPayOff."Interest Incl VAT":=decInterestIncl;
+               END;
+            END;
+      //11.12.2020 - krasi
+            recPayOff.LastPayment:=SetLastPayment;
+      //
+            recPayOff.MODIFY;
+            iLastEntry:=recPayOff."Entry No";
+         UNTIL recPayOff.NEXT=0;
+      EXIT(CurrentMonth);
+    END;
+
+    PROCEDURE DeletePayOffPlan@1400003(pHdr@1400000 : Record 50023) : Boolean;
+    VAR
+      lText001@1400001 : TextConst 'BGR=Искате ли да изтриете погасителния план;ENU=Do You want to delete pay off plan';
+      lText002@1400002 : TextConst 'BGR=Има фактурирани вноски. Действието прекратено.;ENU=Some payments are invoiced. The Action is canceled.';
+      recPayOff@1400003 : Record 50025;
+      recApply@1400004 : Record 50027;
+      lText003@1400005 : TextConst 'BGR=Има свързани фактури или плащания. Действието прекратено.;ENU=Links are exists to invoices. The Action is cancelled.';
+    BEGIN
+      IF CONFIRM(lText001,FALSE) THEN BEGIN
+         recPayOff.RESET;
+         recPayOff.SETCURRENTKEY(bCancel,"Contract No");
+         recPayOff.SETRANGE("Contract No",pHdr."Contract No");
+         recPayOff.SETRANGE("Invoiced Principal",TRUE);
+         recPayOff.SETRANGE(bCancel,FALSE);
+         IF recPayOff.FINDFIRST THEN BEGIN
+            MESSAGE(lText002);
+            EXIT(FALSE);
+         END;
+         recPayOff.SETRANGE("Invoiced Principal");
+         recPayOff.SETRANGE("Invoiced Interest",TRUE);
+         IF recPayOff.FINDFIRST THEN BEGIN
+            MESSAGE(lText002);
+            EXIT(FALSE);
+         END;
+         recApply.RESET;
+         recApply.SETCURRENTKEY(bCancel,"Contract No",Month,Type,"Entry No");
+         recApply.SETRANGE("Contract No",pHdr."Contract No");
+         recApply.SETRANGE(bCancel,FALSE);
+         IF recApply.FINDFIRST THEN BEGIN
+            MESSAGE(lText003);
+            EXIT(FALSE);
+         END;
+         recPayOff.SETRANGE("Invoiced Interest");
+         recPayOff.SETRANGE(bCancel);
+         recPayOff.DELETEALL;
+         EXIT(TRUE);
+      END;
+      EXIT(FALSE);
+    END;
+
+    PROCEDURE GetMonth@1400004(pContract@1400000 : Code[20];pLine@1400001 : Integer;pType@1400002 : Option;pDate@1400003 : Date;pWhat@1400006 : Option) : Integer;
+    VAR
+      lrecPayOff@1400004 : Record 50025;
+      iMonth@1400005 : Integer;
+    BEGIN
+      //pWhat - 0 - change %
+      //pWhat - 1 - change dimension
+
+      lrecPayOff.RESET;
+      lrecPayOff.SETCURRENTKEY(bCancel,"Contract No","Contract Line",Month);
+      lrecPayOff.SETRANGE("Contract No",pContract);
+      lrecPayOff.SETRANGE("Contract Line",pLine);
+      lrecPayOff.SETRANGE(bCancel,FALSE);
+      lrecPayOff.SETFILTER("Due date",'<%1',pDate);
+      lrecPayOff.SETRANGE("Amount Type",pType);
+      IF lrecPayOff.FINDLAST THEN BEGIN
+         iMonth:=lrecPayOff.Month;
+         lrecPayOff.SETRANGE("Due date");
+         lrecPayOff.SETFILTER(Month,'>=%1',iMonth);
+         CASE pWhat OF
+            0:
+               lrecPayOff.SETRANGE("Invoiced Interest",TRUE);
+            1:
+               lrecPayOff.SETRANGE("Invoiced Principal",TRUE);
+         END;
+         IF lrecPayOff.FINDLAST THEN
+            EXIT(lrecPayOff.Month)
+         ELSE
+            EXIT(iMonth);
+      END ELSE
+         EXIT(0);
+    END;
+
+    PROCEDURE UpdateGlobalDim@1400005(pTableNo@1400000 : Integer;pDoc@1400002 : Code[20];pLine@1400003 : Integer;pCode@1400004 : Code[20];pDate@1400009 : Date);
+    VAR
+      lText001@1400001 : TextConst 'BGR=Да се актуализира ли аналитичността по редовете;ENU=Do You want update dimension in lines';
+      recDetail@1400005 : Record 50024;
+      recPlan@1400006 : Record 50025;
+      CurrentMonth@1400008 : Integer;
+    BEGIN
+      CASE pTableNo OF
+         DATABASE::"Lease Header" : BEGIN
+      //      IF CONFIRM(lText001,TRUE) THEN BEGIN
+               recDetail.RESET;
+               recDetail.SETRANGE("Contract No",pDoc);
+               IF recDetail.FINDSET THEN
+                  REPEAT
+                     recDetail.DateModify:=pDate;
+                     recDetail.VALIDATE("Global Dimension 1 Code",pCode);
+                     recDetail.MODIFY;
+                  UNTIL recDetail.NEXT=0;
+               recPlan.RESET;
+               recPlan.SETCURRENTKEY(bCancel,"Contract No","Contract Line",Month,"Amount Type");
+               recPlan.SETRANGE("Contract No",pDoc);
+               recPlan.SETRANGE("Contract Line",0);
+               recPlan.SETRANGE(bCancel,FALSE);
+               recPlan.SETRANGE("Amount Type",recPlan."Amount Type"::AmtBegin);
+               recPlan.SETRANGE("Invoiced Principal",FALSE);
+               IF recPlan.FINDSET THEN
+                  REPEAT
+                     recPlan."Global Dimension 1 Code":=pCode;
+                     recPlan.MODIFY;
+                  UNTIL recPlan.NEXT=0;
+            END;
+         DATABASE::"Lease Detail" : BEGIN
+            CurrentMonth:=GetMonth(pDoc,pLine,0,pDate,1)+1;
+            recPlan.RESET;
+            recPlan.SETCURRENTKEY(bCancel,"Contract No","Contract Line",Month,"Amount Type");
+            recPlan.SETRANGE("Contract No",pDoc);
+            recPlan.SETRANGE("Contract Line",pLine);
+            recPlan.SETRANGE(bCancel,FALSE);
+            recPlan.SETRANGE("Amount Type",recPlan."Amount Type"::Amount);
+            recPlan.SETFILTER(Month,'>=%1',CurrentMonth);
+            IF recPlan.FINDSET THEN
+               REPEAT
+                  recPlan."Global Dimension 1 Code":=pCode;
+                  recPlan.MODIFY;
+               UNTIL recPlan.NEXT=0;
+            CurrentMonth:=GetMonth(pDoc,pLine,1,pDate,1)+1;
+            recPlan.SETRANGE("Amount Type",recPlan."Amount Type"::VAT);
+            recPlan.SETFILTER(Month,'>=%1',CurrentMonth);
+            IF recPlan.FINDSET THEN
+               REPEAT
+                  recPlan."Global Dimension 1 Code":=pCode;
+                  recPlan.MODIFY;
+               UNTIL recPlan.NEXT=0;
+            CurrentMonth:=GetMonth(pDoc,pLine,3,pDate,1)+1;
+            recPlan.SETRANGE("Amount Type",recPlan."Amount Type"::Service);
+            recPlan.SETFILTER(Month,'>=%1',CurrentMonth);
+            IF recPlan.FINDSET THEN
+               REPEAT
+                  recPlan."Global Dimension 1 Code":=pCode;
+                  recPlan.MODIFY;
+               UNTIL recPlan.NEXT=0;
+            CurrentMonth:=GetMonth(pDoc,pLine,4,pDate,1)+1;
+            recPlan.SETRANGE("Amount Type",recPlan."Amount Type"::ServVAT);
+            recPlan.SETFILTER(Month,'>=%1',CurrentMonth);
+            IF recPlan.FINDSET THEN
+               REPEAT
+                  recPlan."Global Dimension 1 Code":=pCode;
+                  recPlan.MODIFY;
+               UNTIL recPlan.NEXT=0;
+         END;
+      END;
+    END;
+
+    PROCEDURE GetStatusAction@1400006(pcodContract@1400000 : Code[20];popAction@1400002 : 'Insert,Modify,Delete,Rename';popModule@1400003 : Option) : Integer;
+    VAR
+      recLease@1400001 : Record 50023;
+    BEGIN
+      //return value
+      //0 - not allow
+      //1 - part allow
+      //2 - full allow
+
+      //which Module
+
+      IF recLease.GET(pcodContract) THEN
+         CASE popAction OF
+            popAction::Insert :
+               CASE recLease."Lease Status" OF
+                  recLease."Lease Status"::Cancel :
+                     EXIT(0);
+                  recLease."Lease Status"::Reoffer :
+                     EXIT(2);
+                  recLease."Lease Status"::Active :
+                     EXIT(0);
+                  recLease."Lease Status"::Closed :
+                     EXIT(0);
+                  recLease."Lease Status"::FillBegin :
+                     EXIT(2);
+                  recLease."Lease Status"::" " :
+                     EXIT(2);
+                  recLease."Lease Status"::Early :
+                     EXIT(0);
+               END;
+            popAction::Modify :
+               CASE recLease."Lease Status" OF
+                  recLease."Lease Status"::Cancel :
+                     EXIT(0);
+                  recLease."Lease Status"::Reoffer :
+                     EXIT(2);
+                  recLease."Lease Status"::Active :
+                     EXIT(0);
+                  recLease."Lease Status"::Closed :
+                     EXIT(0);
+                  recLease."Lease Status"::FillBegin :
+                     EXIT(2);
+                  recLease."Lease Status"::" " :
+                     EXIT(2);
+                  recLease."Lease Status"::Early :
+                     EXIT(0);
+               END;
+            popAction::Delete :
+               CASE recLease."Lease Status" OF
+                  recLease."Lease Status"::Cancel :
+                     EXIT(0);
+                  recLease."Lease Status"::Reoffer :
+                     EXIT(0);
+                  recLease."Lease Status"::Active :
+                     EXIT(0);
+                  recLease."Lease Status"::Closed :
+                     EXIT(0);
+                  recLease."Lease Status"::FillBegin :
+                     EXIT(2);
+                  recLease."Lease Status"::" " :
+                     EXIT(2);
+                  recLease."Lease Status"::Early :
+                     EXIT(0);
+               END;
+            popAction::Rename :
+               CASE recLease."Lease Status" OF
+                  recLease."Lease Status"::Cancel :
+                     EXIT(0);
+                  recLease."Lease Status"::Reoffer :
+                     EXIT(0);
+                  recLease."Lease Status"::Active :
+                     EXIT(0);
+                  recLease."Lease Status"::Closed :
+                     EXIT(0);
+                  recLease."Lease Status"::FillBegin :
+                     EXIT(2);
+                  recLease."Lease Status"::" " :
+                     EXIT(2);
+                  recLease."Lease Status"::Early :
+                     EXIT(0);
+               END;
+
+         END;
+    END;
+
+    PROCEDURE UpdateLeaseRecord@1400008(pdecAmt@1400012 : Decimal;piLease@1400011 : Integer;pbolOpen@1400015 : Boolean);
+    VAR
+      recApply@1400000 : Record 50027;
+      iCount@1400001 : Integer;
+      iTemp@1400002 : Integer;
+      decK@1400003 : Decimal;
+      decCurrTotal@1400004 : Decimal;
+      recPlan@1400006 : Record 50025;
+      lText001@1400007 : TextConst 'BGR=При ред за лизинг не е възможна корекция на %1;ENU=In lease line do not allowed modification on %1';
+      bInvoice@1400008 : Boolean;
+      GLSetup@1400005 : Record 98;
+      decPayed@1400010 : Decimal;
+      decAmtIncl@1400009 : Decimal;
+      decAmtExcl@1400013 : Decimal;
+      decAmt@1400014 : Decimal;
+      iSign@1400016 : Integer;
+    BEGIN
+      GLSetup.GET;
+      recApply.RESET;
+      recApply.SETCURRENTKEY("Entry No");
+      recApply.SETRANGE("Entry No",piLease);
+      recApply.CALCSUMS("Pay Amount Incl VAT","Amount Incl VAT","Amount Excl VAT");
+      decPayed:=recApply."Pay Amount Incl VAT";
+      decAmtIncl:=recApply."Amount Incl VAT";
+      decAmtExcl:=recApply."Amount Excl VAT";
+
+      IF decAmtIncl=0 THEN
+         decAmt:=decAmtExcl
+      ELSE
+         decAmt:=decAmtIncl;
+
+      IF pbolOpen THEN
+         iSign:=-1
+      ELSE
+         iSign:=1;
+
+      IF decAmt<>0 THEN
+         decK:=(decPayed+iSign*pdecAmt)/decAmt
+      ELSE
+         decK:=0;
+
+      iCount:=recApply.COUNT;
+      decCurrTotal:=0;
+      iTemp:=0;
+      IF recApply.FINDSET THEN
+         REPEAT
+            iTemp+=1;
+            IF iCount<>iTemp THEN BEGIN
+               CASE decK OF
+                  1:
+                     IF recApply."Amount Incl VAT"=0 THEN
+                        recApply."Pay Amount Incl VAT":=recApply."Amount Excl VAT"
+                     ELSE
+                        recApply."Pay Amount Incl VAT":=recApply."Amount Incl VAT";
+                  ELSE
+                     IF recApply."Amount Incl VAT"=0 THEN
+                        recApply."Pay Amount Incl VAT":=ROUND(recApply."Amount Excl VAT"*decK,GLSetup."Amount Rounding Precision")
+                     ELSE
+                        recApply."Pay Amount Incl VAT":=ROUND(recApply."Amount Incl VAT"*decK,GLSetup."Amount Rounding Precision");
+               END;
+               decCurrTotal+=recApply."Pay Amount Incl VAT";
+            END ELSE
+               CASE decK OF
+                  0:
+                     recApply."Pay Amount Incl VAT":=0;
+                  1:
+                     IF recApply."Amount Incl VAT"=0 THEN
+                        recApply."Pay Amount Incl VAT":=recApply."Amount Excl VAT"
+                     ELSE
+                        recApply."Pay Amount Incl VAT":=recApply."Amount Incl VAT";
+                  ELSE
+                     IF decPayed=0 THEN
+                        recApply."Pay Amount Incl VAT":=pdecAmt-decCurrTotal
+                     ELSE
+                        recApply."Pay Amount Incl VAT":=decPayed+iSign*pdecAmt-decCurrTotal;
+               END;
+            recApply.MODIFY;
+            CASE recApply."Document Type" OF
+               recApply."Document Type"::Invoice,recApply."Document Type"::"Post Inv" :
+                  bInvoice:=TRUE;
+               recApply."Document Type"::"Credit memo",recApply."Document Type"::"Post Cr memo" :
+                  bInvoice:=FALSE;
+            END;
+            recPlan.CheckPayed(recApply."Payplan Entry",recApply.Type,FALSE,bInvoice);
+         UNTIL recApply.NEXT=0;
+    END;
+
+    PROCEDURE GetMonthAll@1400007(pContract@1400000 : Code[20];pDate@1400003 : Date) : Integer;
+    VAR
+      lrecPayOff@1400004 : Record 50025;
+      iMonth@1400005 : Integer;
+      iTemp@1400001 : Integer;
+    BEGIN
+      lrecPayOff.RESET;
+      lrecPayOff.SETCURRENTKEY(bCancel,"Contract No",Month,"Amount Type");
+      lrecPayOff.SETRANGE("Contract No",pContract);
+      lrecPayOff.SETRANGE(bCancel,FALSE);
+      lrecPayOff.SETFILTER("Due date",'<%1',pDate);
+      IF lrecPayOff.FINDLAST THEN BEGIN
+         iMonth:=lrecPayOff.Month;
+         lrecPayOff.SETRANGE("Due date");
+         lrecPayOff.SETFILTER(Month,'>=%1',iMonth);
+         lrecPayOff.SETRANGE("Invoiced Interest",TRUE);
+         IF lrecPayOff.FINDLAST THEN
+            iTemp:=lrecPayOff.Month;
+         IF iTemp>iMonth THEN
+            iMonth:=iTemp;
+         iTemp:=0;
+         lrecPayOff.SETRANGE("Invoiced Interest");
+         lrecPayOff.SETRANGE("Invoiced Principal",TRUE);
+         IF lrecPayOff.FINDLAST THEN
+            iTemp:=lrecPayOff.Month;
+         IF iTemp>iMonth THEN
+            iMonth:=iTemp;
+         iTemp:=0;
+         lrecPayOff.SETRANGE("Invoiced Principal");
+         lrecPayOff.SETFILTER(Month,'>=%1',iMonth);
+         lrecPayOff.SETFILTER("Inv Principal Excl VAT",'<>0');
+         IF lrecPayOff.FINDLAST THEN
+            iTemp:=lrecPayOff.Month;
+         IF iTemp>iMonth THEN
+            iMonth:=iTemp;
+         iTemp:=0;
+         lrecPayOff.SETRANGE("Inv Principal Excl VAT");
+         lrecPayOff.SETFILTER("Inv Interest Excl VAT",'<>0');
+         IF lrecPayOff.FINDLAST THEN
+            iTemp:=lrecPayOff.Month;
+         IF iTemp>iMonth THEN
+            iMonth:=iTemp;
+         EXIT(iMonth);
+      END ELSE
+         EXIT(0);
+    END;
+
+    PROCEDURE CopyLease@1400009(VAR pRec@1400000 : Record 50023);
+    VAR
+      lText001@1400001 : TextConst 'BGR=Договор %1 трябва да няма статус;ENU=Lease contract %1 must be no lease status';
+      lRec@1400002 : Record 50023;
+      f@1400003 : Page 50091;
+      lTemp@1400004 : Record 50023;
+      codNew@1400005 : Code[10];
+      codNos@1400006 : Code[10];
+      codCopy@1400007 : Code[10];
+      lLeaseAmt@1400008 : Record 50026;
+      lDetail@1400009 : Record 50024;
+      lLeaseAmtTemp@1400011 : Record 50026;
+      lDetailTemp@1400010 : Record 50024;
+      lText002@1400012 : TextConst 'BGR=Копирането успешно;ENU=Copy contract successfull';
+      lText003@1400013 : TextConst 'BGR=Желаете ли да копирате договор %1 в договор %2';
+      lPayOff@1400014 : Record 50025;
+      lText004@1400015 : TextConst 'BGR=&1.Директно,&2.Остатъчен;ENU=&1.Direct,&2.Remaining';
+      iSelect@1400016 : Integer;
+      opCopy@1400017 : ' ,Direct,Remaining';
+      dDate@1400019 : Date;
+      iMaxMonth@1400018 : Integer;
+      lText005@1400020 : TextConst 'BGR=Не е създаден договор в който ще копирате;ENU=Destination Lease contract is not exists';
+      lrecDefDim@1400021 : Record 352;
+      lrecDefTemp@1400022 : Record 352;
+      bolHaveVatPlan@1400023 : Boolean;
+      iLastGPeriod@1400024 : Integer;
+      lText006@1400025 : TextConst 'BGR=Копиране от %1 в %2 не е позволено;ENU=Copy from contract %1 in contract %2 not allowed';
+    BEGIN
+      lRec.COPY(pRec);
+      IF lRec."Contract No"='' THEN BEGIN
+         MESSAGE(lText005);
+         EXIT;
+      END;
+      IF lRec."Lease Status"=lRec."Lease Status"::" " THEN BEGIN
+         CLEAR(f);
+         f.LOOKUPMODE(TRUE);
+         IF f.RUNMODAL=ACTION::LookupOK THEN BEGIN
+            f.GETRECORD(lTemp);
+            codNew:=lRec."Contract No";
+            codCopy:=lTemp."Contract No";
+            IF codNew=codCopy THEN BEGIN
+               MESSAGE(lText006,codNew,codCopy);
+               EXIT;
+            END;
+            iSelect:=STRMENU(lText004,2);
+            CASE iSelect OF
+               1:opCopy:=opCopy::Direct;
+               2:opCopy:=opCopy::Remaining;
+            END;
+
+            IF CONFIRM(lText003,FALSE,codCopy,codNew) THEN BEGIN
+               bolHaveVatPlan:=lTemp.IsHaveVATplan(lTemp);
+               lRec."Contract Date":=lTemp."Contract Date";
+               lRec."Principal Period":=lTemp."Principal Period";
+               lRec."Vendor No":=lTemp."Vendor No";
+               lRec."Principal Excl VAT":=lTemp."Principal Excl VAT";
+               lRec."Type Invoicing":=lTemp."Type Invoicing";
+               lRec."Type Payment":=lTemp."Type Payment";
+               lRec."Vendor Name":=lTemp."Vendor Name";
+               lRec."Ext Document":=lTemp."Ext Document";
+               lRec."Principal Interest %":=lTemp."Principal Interest %";
+               lRec."Principal Grace Period":=lTemp."Principal Grace Period";
+               lRec."Principal Incl VAT":=lTemp."Principal Incl VAT";
+               lRec."VAT Period":=lTemp."VAT Period";
+               lRec."VAT Grace Period":=lTemp."VAT Grace Period";
+               lRec."VAT Interest %":=lTemp."VAT Interest %";
+               lRec."Currency Code":=lTemp."Currency Code";
+               lRec."Global Dimension 1 Code":=lTemp."Global Dimension 1 Code";
+               lRec."Interest with VAT":=lTemp."Interest with VAT";
+               lRec."Vendor 1 No":=lTemp."Vendor 1 No";
+               lRec."Vendor 1 Name":=lTemp."Vendor 1 Name";
+               lRec."No Refund":=lTemp."No Refund";
+               lRec."Vendor 2 No":=lTemp."Vendor 2 No";
+               lRec."Vendor 2 Name":=lTemp."Vendor 2 Name";
+               IF opCopy=opCopy::Direct THEN BEGIN
+                  lRec."Begin Payment Excl VAT":=lTemp."Begin Payment Excl VAT";
+                  lRec."Begin Payment Incl VAT":=lTemp."Begin Payment Incl VAT";
+                  lRec."Count Begin":=lTemp."Count Begin";
+                  lRec."Begin PayOff Date":=lTemp."Begin PayOff Date";
+                  lRec."No First Month":=lTemp."No First Month";
+               END;
+               lRec.MODIFY;
+      //
+               lrecDefDim.RESET;
+               lrecDefDim.SETRANGE("Table ID",50023);
+               lrecDefDim.SETRANGE("No.",codCopy);
+               IF lrecDefDim.FINDSET THEN
+                  REPEAT
+                     lrecDefTemp:=lrecDefDim;
+                     lrecDefTemp."No.":=codNew;
+                     lrecDefTemp.INSERT(TRUE);
+                  UNTIL lrecDefDim.NEXT=0;
+      //
+               IF opCopy=opCopy::Remaining THEN BEGIN
+                  lPayOff.RESET;
+                  lPayOff.SETCURRENTKEY(bCancel,"Contract No",Month,"Amount Type");
+                  lPayOff.SETRANGE(bCancel,FALSE);
+                  lPayOff.SETRANGE("Contract No",codCopy);
+                  dDate:=0D;
+                  iMaxMonth:=0;
+                  IF lPayOff.FINDLAST THEN BEGIN
+                     dDate:=lPayOff."Due date";
+                     iMaxMonth:=lPayOff.Month;
+                  END;
+                  IF dDate<>0D THEN
+                     lRec."Begin PayOff Date":=CALCDATE('<1M>',dDate);
+                  lRec."No First Month":=iMaxMonth+1;
+                  lRec."Principal Period":=lRec."Principal Period"-iMaxMonth+
+                                           lTemp."No First Month"-1;
+                  IF lRec."VAT Period"<=(iMaxMonth-lTemp."No First Month"-1) THEN
+                     lRec."VAT Period":=0
+                  ELSE
+                     lRec."VAT Period":=lRec."VAT Period"-iMaxMonth+lTemp."No First Month"-1;
+
+                  lPayOff.SETRANGE(Month,iMaxMonth);
+                  lPayOff.SETFILTER("Amount Type",'%1|%2',lPayOff."Amount Type"::Amount,
+                                                          lPayOff."Amount Type"::Service);
+                  lPayOff.CALCSUMS("Rem Principal Excl VAT","Rem Principal Incl VAT");
+                  lRec."Principal Excl VAT":=lPayOff."Rem Principal Excl VAT";
+                  IF bolHaveVatPlan THEN BEGIN
+                     lPayOff.SETFILTER("Amount Type",'%1|%2',lPayOff."Amount Type"::VAT,
+                                                             lPayOff."Amount Type"::ServVAT);
+                     lPayOff.CALCSUMS("Rem Principal Excl VAT");
+                     lRec."Principal Incl VAT":=lRec."Principal Excl VAT"+lPayOff."Rem Principal Excl VAT";
+                  END ELSE
+                     lRec."Principal Incl VAT":=lPayOff."Rem Principal Incl VAT";
+
+                  iLastGPeriod:=0;
+                  lPayOff.RESET;
+                  lPayOff.SETCURRENTKEY(bCancel,"Contract No","Contract Line",Month,"Amount Type");
+                  lPayOff.SETRANGE(bCancel,FALSE);
+                  lPayOff.SETRANGE("Contract No",codCopy);
+                  lPayOff.SETRANGE("Contract Line",1);
+                  lPayOff.SETRANGE("Amount Type",lPayOff."Amount Type"::Amount);
+                  lPayOff.SETRANGE("Entry Type",lPayOff."Entry Type"::Interest);
+                  lPayOff.SETFILTER(Month,'<=%1',iMaxMonth);
+                  iLastGPeriod:=lPayOff.COUNT;
+                  lRec."Principal Grace Period":=lRec."Principal Grace Period"-iLastGPeriod;
+                  IF bolHaveVatPlan THEN BEGIN
+                     lPayOff.SETRANGE("Amount Type",lPayOff."Amount Type"::VAT);
+                     iLastGPeriod:=lPayOff.COUNT;
+                     lRec."VAT Grace Period":=lRec."VAT Grace Period"-iLastGPeriod;
+                  END;
+
+                  lRec.MODIFY
+               END;
+      //
+               lLeaseAmt.RESET;
+               lLeaseAmt.SETRANGE("Contract No",codCopy);
+               IF lLeaseAmt.FINDSET THEN
+                  REPEAT
+                     lLeaseAmtTemp:=lLeaseAmt;
+                     IF opCopy=opCopy::Remaining THEN BEGIN
+                        lDetail.RESET;
+                        lDetail.SETRANGE("Vehicle Type",lLeaseAmt."Vehicle Type");
+                        lDetail.SETRANGE("Contract No",codCopy);
+                        IF lDetail.FINDSET THEN BEGIN
+                           lPayOff.RESET;
+                           lPayOff.SETCURRENTKEY(bCancel,"Contract No","Contract Line",Month,"Amount Type");
+                           lPayOff.SETRANGE("Contract No",lDetail."Contract No");
+                           lPayOff.SETRANGE("Contract Line",lDetail."Line No");
+                           lPayOff.SETRANGE(Month,iMaxMonth);
+                           lPayOff.SETRANGE(bCancel,FALSE);
+                           lPayOff.SETFILTER("Amount Type",'%1|%2',lPayOff."Amount Type"::Amount,
+                                                                   lPayOff."Amount Type"::Service);
+                           lPayOff.CALCSUMS("Rem Principal Excl VAT","Rem Principal Incl VAT");
+                           lLeaseAmtTemp."Amount Excl VAT":=lPayOff."Rem Principal Excl VAT";
+                           IF bolHaveVatPlan THEN BEGIN
+                              lPayOff.SETFILTER("Amount Type",'%1|%2',lPayOff."Amount Type"::VAT,
+                                                                      lPayOff."Amount Type"::ServVAT);
+                              lPayOff.CALCSUMS("Rem Principal Excl VAT");
+                              lLeaseAmtTemp."Amount Incl VAT":=lLeaseAmtTemp."Amount Excl VAT"+lPayOff."Rem Principal Excl VAT";
+                           END ELSE
+                              lLeaseAmtTemp."Amount Incl VAT":=lPayOff."Rem Principal Incl VAT";
+                        END;
+                     END;
+                     lLeaseAmtTemp."Contract No":=codNew;
+                     lLeaseAmtTemp.INSERT(TRUE);
+                  UNTIL lLeaseAmt.NEXT=0;
+      //
+               lDetail.RESET;
+               lDetail.SETRANGE("Contract No",codCopy);
+               IF lDetail.FINDSET THEN
+                  REPEAT
+                     lDetailTemp:=lDetail;
+                     lDetailTemp."Contract No":=codNew;
+                     lDetailTemp."Principal Excl VAT":=0;
+                     lDetailTemp."Principal Interest Excl VAT":=0;
+                     lDetailTemp."Principal Incl VAT":=0;
+                     lDetailTemp."Principal Interest Incl VAT":=0;
+                     lDetailTemp."Last Payment Excl VAT":=0;
+                     lDetailTemp."Last Payment Incl VAT":=0;
+                     lDetailTemp.INSERT(TRUE);
+                  UNTIL lDetail.NEXT=0;
+      //
+               pRec:=lRec;
+               MESSAGE(lText002);
+            END;
+         END;
+      END ELSE
+         MESSAGE(lText001,lRec."Contract No");
+    END;
+
+    PROCEDURE GetMonthDue@1400010(pContract@1400000 : Code[20];pDate@1400003 : Date) : Integer;
+    VAR
+      lrecPayOff@1400004 : Record 50025;
+      iMonth@1400005 : Integer;
+      iTemp@1400001 : Integer;
+    BEGIN
+      lrecPayOff.RESET;
+      lrecPayOff.SETCURRENTKEY(bCancel,"Contract No",Month,"Amount Type");
+      lrecPayOff.SETRANGE("Contract No",pContract);
+      lrecPayOff.SETRANGE(bCancel,FALSE);
+      lrecPayOff.SETFILTER("Due date",'<%1',pDate);
+      IF lrecPayOff.FINDLAST THEN BEGIN
+         iMonth:=lrecPayOff.Month;
+         EXIT(iMonth);
+      END ELSE
+         EXIT(0);
+    END;
+
+    PROCEDURE UpdatePaymentDate@1400011(piLine@1400000 : Integer;pDate@1400001 : Date);
+    VAR
+      lrecApply@1400002 : Record 50027;
+    BEGIN
+      lrecApply.RESET;
+      lrecApply.SETCURRENTKEY("Entry No");
+      lrecApply.SETRANGE("Entry No",piLine);
+      lrecApply.MODIFYALL("Payment Date",pDate);
+    END;
+
+    PROCEDURE GetMonthAllEarly@50000(pContract@1400000 : Code[20];pDate@1400003 : Date) : Integer;
+    VAR
+      lrecPayOff@1400004 : Record 50025;
+      iMonth@1400005 : Integer;
+      iTemp@1400001 : Integer;
+    BEGIN
+      //17.11.2017 - krasi
+      lrecPayOff.RESET;
+      lrecPayOff.SETCURRENTKEY(bCancel,"Contract No",Month,"Amount Type");
+      lrecPayOff.SETRANGE("Contract No",pContract);
+      lrecPayOff.SETRANGE(bCancel,FALSE);
+      lrecPayOff.SETFILTER("Due date",'<%1',pDate);
+      //Last month above Date
+      IF lrecPayOff.FINDLAST THEN
+         iMonth:=lrecPayOff.Month
+      ELSE
+         iMonth:=0;
+      lrecPayOff.SETRANGE("Due date");
+      lrecPayOff.SETFILTER(Month,'>=%1',iMonth);
+      lrecPayOff.SETRANGE("Invoiced Interest",TRUE);
+      //Last invoiced inerest after found month
+      IF lrecPayOff.FINDLAST THEN
+         iTemp:=lrecPayOff.Month;
+      IF iTemp>iMonth THEN
+         iMonth:=iTemp;
+      iTemp:=0;
+      lrecPayOff.SETRANGE("Invoiced Interest");
+      lrecPayOff.SETFILTER(Month,'>=%1',iMonth);
+      lrecPayOff.SETFILTER("Inv Interest Excl VAT",'<>0');
+      //Last not full invoice interest after found month
+      IF lrecPayOff.FINDLAST THEN
+         iTemp:=lrecPayOff.Month;
+      IF iTemp>iMonth THEN
+         iMonth:=iTemp;
+      EXIT(iMonth);
+    END;
+
+    BEGIN
+    {
+      //GeneratePayOffPlan
+      //CalcDetailPrincipal
+      //CalcPayOffPlan
+      //DeletePayOffPlan
+      //UpdateGlobalDim
+      //GetMonth
+      //GetStatusAction
+      //UpdateLeaseRecord
+      //GetMonthAll
+      //CopyLease
+      //GetMonthDue
+      //UpdatePaymentDate
+      //GetMonthAllEarly
+
+      //22.11.2014 - krasi
+      //17.11.2017 - krasi - [DIS181]
+        update function GetStatusAction
+        add new function GetMonthAllEarly
+      //01.06.2018 - krasi
+        add check if function call for change interest
+
+      //19.06.2018 - krasi - [DIS201]
+        add new type calculation (in begining with interest in payment 1)
+    }
+    END.
+  }
+}
+

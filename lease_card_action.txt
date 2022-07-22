@@ -1,0 +1,56 @@
+
+Documentation()
+//31.01.2017 - krasi - [DIS143]
+  show "lease type"
+
+Dimensions - OnAction()
+
+Basic Payoff plan - OnAction()
+CLEAR(fAll);
+fAll.SetRecordPage("Contract No",1,FALSE);
+fAll.RUNMODAL;
+
+Basic Payoff VAT plan - OnAction()
+CLEAR(fAll);
+fAll.SetRecordPage("Contract No",2,FALSE);
+fAll.RUNMODAL;
+
+Basic cancelled Payoff plan - OnAction()
+CLEAR(fAll);
+fAll.SetRecordPage("Contract No",1,TRUE);
+fAll.RUNMODAL;
+
+Basic cancelled Payoff VAT - OnAction()
+CLEAR(fAll);
+fAll.SetRecordPage("Contract No",2,TRUE);
+fAll.RUNMODAL;
+
+Generate Pay off plan - OnAction()
+IF cunLeaseTool.GeneratePayOffPlan(Rec,0,0,FALSE) THEN
+   MESSAGE(Text001)
+ELSE
+   MESSAGE(Text002);
+
+Fill due date - OnAction()
+IF cunLeaseTool.GeneratePayOffPlan(Rec,1,0,FALSE) THEN
+   MESSAGE(Text001)
+ELSE
+   MESSAGE(Text002);
+
+<Попълни главници> - OnAction()
+IF cunLeaseTool.CalcDetailPrincipal(Rec) THEN
+   MESSAGE(Text001)
+ELSE
+   MESSAGE(Text002);
+
+Remove payoff plan - OnAction()
+IF cunLeaseTool.DeletePayOffPlan(Rec) THEN
+   MESSAGE('ok');
+
+Copy from Lease - OnAction()
+CurrPage.UPDATE;
+cunLeaseTool.CopyLease(Rec);
+CurrPage.UPDATE;
+
+SetOpen - OnAction()
+SetOpenFalsePayPlan;
