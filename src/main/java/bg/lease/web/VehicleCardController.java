@@ -6,7 +6,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -22,14 +21,11 @@ public class VehicleCardController {
         this.vehicleService = vehicleService;
     }
 
-    @ModelAttribute
-    public void initForm(Model model){
-        model.addAttribute("vehicleDTO",new VehicleDTO());
-    }
-
     @GetMapping("/vehiclecard")
-    public String vehicleCard() {
-        return "vehiclecard";
+    public String vehicleCard(Model model) {
+        model.addAttribute("vehicleDTO",new VehicleDTO());
+        model.addAttribute("hideCard",true);
+        return "vehiclelist";
     }
 
     @PostMapping("/vehiclecard")
@@ -39,6 +35,7 @@ public class VehicleCardController {
         if (bindingResult.hasErrors()){
             redirectAttributes.addFlashAttribute("vehicleDTO",vehicleDTO);
             redirectAttributes.addFlashAttribute("org.springframework.validation.BindingResult.vehicleDTO",bindingResult);
+            redirectAttributes.addFlashAttribute("hideCard",true);
             return "redirect:/vehiclecard";
         }
         vehicleService.addCard(vehicleDTO);
@@ -49,6 +46,6 @@ public class VehicleCardController {
     public String editVehicleCard(Model model, @PathVariable("code") String vehicleNo){
         VehicleDTO vehicle=this.vehicleService.editCard(vehicleNo);
         model.addAttribute("vehicleDTO",vehicle);
-        return "vehiclecard";
+        return "vehiclelist";
     }
 }

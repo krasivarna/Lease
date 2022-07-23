@@ -110,3 +110,6 @@
 .td-hide{
     display: none;
 }
+.modalCard{
+    top:100px;
+}

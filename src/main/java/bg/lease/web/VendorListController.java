@@ -4,7 +4,6 @@ import bg.lease.service.VendorService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 
 @Controller
 public class VendorListController {
@@ -15,13 +14,11 @@ public class VendorListController {
         this.vendorService=vendorService;
     }
 
-    @ModelAttribute
-    public void initForm(Model model){
-        model.addAttribute("vendorList",vendorService.listVendor());
-    }
-
     @GetMapping("/vendorlist")
-    public String vendorList(){
+    public String vendorList(Model model){
+        model.addAttribute("vendorList",vendorService.listVendor());
+        model.addAttribute("hideCard",false);
         return "vendorlist";
     }
+
 }

@@ -1,0 +1,83 @@
+<th:block>
+    <div id="vendorcard" class="container" th:if="${hideCard}">
+        <h2 class="text-center text-dark">Vendor Card</h2>
+        <form
+                th:action="@{/vendorcard}"
+                th:method="post"
+                th:object="${vendorDTO}"
+                class="text-white main-form mx-auto col-md-8 d-flex flex-column justify-content-center">
+            <div class="row">
+                <div class="form-group col-md-6 mb-3">
+                    <label for="no" class="font-weight-bold">Vendor No.</label>
+                    <input id="no"
+                           th:field="*{no}"
+                           th:errorclass="is-invalid"
+                           type="text"
+                           class="form-control"
+                           placeholder="Vendor No."/>
+                </div>
+                <div class="form-group col-md-6 mb-3">
+                    <label for="name" class="font-weight-bold">Vendor Name</label>
+                    <input id="name"
+                           th:field="*{name}"
+                           th:errorclass="is-invalid"
+                           type="text"
+                           class="form-control"
+                           placeholder="Vendor Name"/>
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-group col-md-6 mb-3">
+                    <label for="country" class="font-weight-bold">Country</label>
+                    <div class="input-group">
+                        <div class="input-group-text arrow icon-down" onclick="CreateLookupCountry(document.getElementById('country').value,
+                                                                                               document.getElementById('vendorcard'))" id="btn2"></div>
+                        <input id="country"
+                               th:field="*{country}"
+                               th:errorclass="is-invalid"
+                               type="text"
+                               class="form-control"
+                               placeholder="Country"
+                               oninput="SearchCountry(document.getElementById('country').value,
+                                             document.getElementById('vendorcard'))"
+                               onblur="HideLookup()"
+                        />
+                    </div>
+                </div>
+                <div class="form-group col-md-6 mb-3">
+                    <label for="city" class="font-weight-bold">City</label>
+                    <input id="city"
+                           th:field="*{city}"
+                           th:errorclass="is-invalid"
+                           type="text"
+                           class="form-control"
+                           placeholder="City"/>
+                </div>
+                <div class="form-group col-md-6 mb-3">
+                    <label for="address" class="font-weight-bold">Address</label>
+                    <input id="address"
+                           th:field="*{address}"
+                           th:errorclass="is-invalid"
+                           type="text"
+                           class="form-control"
+                           placeholder="Address"/>
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-group col-md-6 mb-3">
+                    <label for="vatregistration" class="font-weight-bold">VAT Registration</label>
+                    <input id="vatregistration"
+                           th:field="*{vatRegistration}"
+                           th:errorclass="is-invalid"
+                           type="text"
+                           class="form-control"
+                           placeholder="VAT Registration"/>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="savecard" class="btn btn-primary" type="submit">Save</button>
+                <a id="cancelcard" class="btn btn btn-secondary" type="button" th:href="@{/vendorlist}">Cancel</a>
+            </div>
+        </form>
+    </div>
+</th:block>

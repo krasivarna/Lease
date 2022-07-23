@@ -15,13 +15,10 @@ public class VehicleListController {
         this.vehicleService = vehicleService;
     }
 
-    @ModelAttribute
-    public void initForm(Model model){
-        model.addAttribute("vehicleList",vehicleService.listVehicle());
-    }
-
     @GetMapping("/vehiclelist")
-    public String vehicleList(){
+    public String vehicleList(Model model){
+        model.addAttribute("vehicleList",vehicleService.listVehicle());
+        model.addAttribute("hideCard",false);
         return "vehiclelist";
     }
 }

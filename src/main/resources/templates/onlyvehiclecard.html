@@ -1,0 +1,46 @@
+<th:block>
+    <div id="vehiclecard" class="container" th:if="${hideCard}">
+        <h2 class="text-center text-dark">Vehicle Card</h2>
+        <form
+                th:action="@{/vehiclecard}"
+                th:method="post"
+                th:object="${vehicleDTO}"
+                class="text-white main-form mx-auto col-md-8 d-flex flex-column justify-content-center">
+            <div class="row">
+                <div class="form-group col-md-6 mb-3">
+                    <label for="no" class="font-weight-bold">Vehicle No.</label>
+                    <input id="no"
+                           th:field="*{no}"
+                           th:errorclass="is-invalid"
+                           type="text"
+                           class="form-control"
+                           placeholder="Vehicle No."/>
+                </div>
+                <div class="form-group col-md-6 mb-3">
+                    <label for="numberPlate" class="font-weight-bold">Vehicle number plate</label>
+                    <input id="numberPlate"
+                           th:field="*{numberPlate}"
+                           th:errorclass="is-invalid"
+                           type="text"
+                           class="form-control"
+                           placeholder="Number plate"/>
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-group col-md-6 mb-3">
+                    <label for="vehicleModel" class="font-weight-bold">Vehicle model</label>
+                    <input id="vehicleModel"
+                           th:field="*{vehicleModel}"
+                           th:errorclass="is-invalid"
+                           type="text"
+                           class="form-control"
+                           placeholder="Vehicle model"/>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="savecard" class="btn btn-primary" type="submit">Save</button>
+                <a id="cancelcard" class="btn btn btn-secondary" type="button" th:href="@{/vehiclelist}">Cancel</a>
+            </div>
+        </form>
+    </div>
+</th:block>

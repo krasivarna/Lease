@@ -1,13 +1,11 @@
 package bg.lease.web;
 
-import bg.lease.model.dto.LeaseCardDTO;
 import bg.lease.model.dto.VendorDTO;
 import bg.lease.service.VendorService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -22,14 +20,11 @@ public class VendorCardController {
         this.vendorService=vendorService;
     }
 
-    @ModelAttribute
-    public void initForm(Model model){
-        model.addAttribute("vendorDTO",new VendorDTO());
-    }
-
     @GetMapping("/vendorcard")
-    public String vendorCard() {
-        return "vendorcard";
+    public String vendorCard(Model model) {
+        model.addAttribute("vendorDTO",new VendorDTO());
+        model.addAttribute("hideCard",true);
+        return "vendorlist";
     }
 
     @PostMapping("/vendorcard")
@@ -39,6 +34,7 @@ public class VendorCardController {
         if (bindingResult.hasErrors()){
             redirectAttributes.addFlashAttribute("vendorDTO",vendorDTO);
             redirectAttributes.addFlashAttribute("org.springframework.validation.BindingResult.vendorDTO",bindingResult);
+            redirectAttributes.addFlashAttribute("hideCard",true);
             return "redirect:/vendorcard";
         }
         vendorService.addCard(vendorDTO);
@@ -49,6 +45,7 @@ public class VendorCardController {
     public String editVendorCard(Model model, @PathVariable("code") String vendorNo){
         VendorDTO vendor=this.vendorService.editCard(vendorNo);
         model.addAttribute("vendorDTO",vendor);
-        return "vendorcard";
+        model.addAttribute("hideCard",true);
+        return "vendorlist";
     }
 }

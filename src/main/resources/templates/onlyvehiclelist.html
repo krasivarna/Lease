@@ -1,0 +1,39 @@
+<th:block>
+    <div id="vehiclelist" class="container" th:unless="${hideCard}">
+        <h2 class="text-center text-dark">Vehicle list</h2>
+        <form
+                th:action="@{/vehiclelist}"
+                th:method="post"
+                class="text-white main-form">
+            <div class="table-responsive">
+                <table class="table table-striped table-bordered">
+                    <thead>
+                    <tr class="ui-icon-key">
+                        <th>actions</th>
+                        <th>Vehicle No.</th>
+                        <th>Vehicle number plate</th>
+                        <th>Vehicle model</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr class="block" th:each="regionList : ${vehicleList}">
+                        <td>
+                            <button type="button" class="btn btn-link" th:href="@{/vehiclecard/{code}(code=${regionList.getNo()})}">edit</button>
+                            <!---
+                            <button type="button" class="btn btn-link" th:onclick="'DeleteVehicleCard(this)'">delete</button>
+                            --->
+                        </td>
+                        <td th:text="${regionList.getNo()}"/>
+                        <td th:text="${regionList.getNumberPlate()}"/>
+                        <td th:text="${regionList.getVehicleModel()}"/>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <a id="newlist" class="key btn btn-lg" th:href="@{/vehiclecard}">New</a>
+                <a id="cancellist" class="btn btn btn-secondary" th:href="@{/}">Close</a>
+            </div>
+        </form>
+    </div>
+</th:block>
