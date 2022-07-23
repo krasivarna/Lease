@@ -18,7 +18,7 @@ public class VehicleListController {
     @GetMapping("/vehiclelist")
     public String vehicleList(Model model){
         model.addAttribute("vehicleList",vehicleService.listVehicle());
-        model.addAttribute("hideCard",false);
+        model.addAttribute("hideCard",true);
         return "vehiclelist";
     }
 }

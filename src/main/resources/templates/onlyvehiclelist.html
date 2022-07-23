@@ -1,5 +1,5 @@
 <th:block>
-    <div id="vehiclelist" class="container" th:unless="${hideCard}">
+    <div id="vehiclelist" class="container" th:if="${hideCard}">
         <h2 class="text-center text-dark">Vehicle list</h2>
         <form
                 th:action="@{/vehiclelist}"
@@ -18,7 +18,7 @@
                     <tbody>
                     <tr class="block" th:each="regionList : ${vehicleList}">
                         <td>
-                            <button type="button" class="btn btn-link" th:href="@{/vehiclecard/{code}(code=${regionList.getNo()})}">edit</button>
+                            <a type="button" class="btn btn-link" th:href="@{/vehiclecard/{code}(code=${regionList.getNo()})}">edit</a>
                             <!---
                             <button type="button" class="btn btn-link" th:onclick="'DeleteVehicleCard(this)'">delete</button>
                             --->

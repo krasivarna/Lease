@@ -24,7 +24,7 @@ public class VehicleCardController {
     @GetMapping("/vehiclecard")
     public String vehicleCard(Model model) {
         model.addAttribute("vehicleDTO",new VehicleDTO());
-        model.addAttribute("hideCard",true);
+        model.addAttribute("hideCard",false);
         return "vehiclelist";
     }
 
@@ -35,7 +35,7 @@ public class VehicleCardController {
         if (bindingResult.hasErrors()){
             redirectAttributes.addFlashAttribute("vehicleDTO",vehicleDTO);
             redirectAttributes.addFlashAttribute("org.springframework.validation.BindingResult.vehicleDTO",bindingResult);
-            redirectAttributes.addFlashAttribute("hideCard",true);
+            redirectAttributes.addFlashAttribute("hideCard",false);
             return "redirect:/vehiclecard";
         }
         vehicleService.addCard(vehicleDTO);
@@ -46,6 +46,7 @@ public class VehicleCardController {
     public String editVehicleCard(Model model, @PathVariable("code") String vehicleNo){
         VehicleDTO vehicle=this.vehicleService.editCard(vehicleNo);
         model.addAttribute("vehicleDTO",vehicle);
+        model.addAttribute("hideCard",false);
         return "vehiclelist";
     }
 }

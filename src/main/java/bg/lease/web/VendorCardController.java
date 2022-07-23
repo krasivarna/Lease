@@ -23,7 +23,7 @@ public class VendorCardController {
     @GetMapping("/vendorcard")
     public String vendorCard(Model model) {
         model.addAttribute("vendorDTO",new VendorDTO());
-        model.addAttribute("hideCard",true);
+        model.addAttribute("hideCard",false);
         return "vendorlist";
     }
 
@@ -34,7 +34,7 @@ public class VendorCardController {
         if (bindingResult.hasErrors()){
             redirectAttributes.addFlashAttribute("vendorDTO",vendorDTO);
             redirectAttributes.addFlashAttribute("org.springframework.validation.BindingResult.vendorDTO",bindingResult);
-            redirectAttributes.addFlashAttribute("hideCard",true);
+            redirectAttributes.addFlashAttribute("hideCard",false);
             return "redirect:/vendorcard";
         }
         vendorService.addCard(vendorDTO);
@@ -45,7 +45,7 @@ public class VendorCardController {
     public String editVendorCard(Model model, @PathVariable("code") String vendorNo){
         VendorDTO vendor=this.vendorService.editCard(vendorNo);
         model.addAttribute("vendorDTO",vendor);
-        model.addAttribute("hideCard",true);
+        model.addAttribute("hideCard",false);
         return "vendorlist";
     }
 }

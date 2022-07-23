@@ -1,5 +1,5 @@
 <th:block>
-    <div id="vehiclecard" class="container" th:if="${hideCard}">
+    <div id="vehiclecard" class="container" th:unless="${hideCard}">
         <h2 class="text-center text-dark">Vehicle Card</h2>
         <form
                 th:action="@{/vehiclecard}"

@@ -4,7 +4,6 @@ import bg.lease.service.CountryService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 
 @Controller
 public class CountryListController {
@@ -15,13 +14,10 @@ public class CountryListController {
         this.countryService = countryService;
     }
 
-    @ModelAttribute
-    public void initForm(Model model){
-        model.addAttribute("countryList",countryService.listCountry());
-    }
-
     @GetMapping("/countrylist")
-    public String countryList(){
+    public String countryList(Model model){
+        model.addAttribute("countryList",countryService.listCountry());
+        model.addAttribute("hideCard",true);
         return "countrylist";
     }
 }

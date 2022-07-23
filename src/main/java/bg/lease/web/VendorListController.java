@@ -17,7 +17,7 @@ public class VendorListController {
     @GetMapping("/vendorlist")
     public String vendorList(Model model){
         model.addAttribute("vendorList",vendorService.listVendor());
-        model.addAttribute("hideCard",false);
+        model.addAttribute("hideCard",true);
         return "vendorlist";
     }
 
