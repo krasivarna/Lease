@@ -1,6 +1,5 @@
 package bg.lease.web;
 
-import bg.lease.model.dto.LeaseCardDTO;
 import bg.lease.model.dto.LeaseDetailDTO;
 import bg.lease.service.LeaseDetailService;
 import org.springframework.stereotype.Controller;
@@ -27,7 +26,10 @@ public class LeaseDetailCardController {
                                       @PathVariable("code") String contractNo,
                                       @PathVariable("lineno") int lineNo){
         model.addAttribute("leaseDetailDTO",this.leaseDetailService.editLeaseDetailCard(contractNo, lineNo));
-        return "leasedetailcard";
+        model.addAttribute("showList",false);
+        model.addAttribute("showCard",false);
+        model.addAttribute("showDetailCard",true);
+        return "leaselist";
     }
 
     @PostMapping("/leasedetailcard")
@@ -37,6 +39,9 @@ public class LeaseDetailCardController {
         if (bindingResult.hasErrors()){
             redirectAttributes.addFlashAttribute("leaseDetailDTO",leaseDetailDTO);
             redirectAttributes.addFlashAttribute("org.springframework.validation.BindingResult.leaseDetailDTO",bindingResult);
+            redirectAttributes.addFlashAttribute("showList",false);
+            redirectAttributes.addFlashAttribute("showCard",false);
+            redirectAttributes.addFlashAttribute("showDetailCard",true);
             return "redirect:/leasedetailcard";
         }
         try {
@@ -44,8 +49,11 @@ public class LeaseDetailCardController {
         } catch (RuntimeException e){
             redirectAttributes.addFlashAttribute("leaseCardDTO",leaseDetailDTO);
             redirectAttributes.addFlashAttribute("org.springframework.validation.BindingResult.leaseDetailDTO",bindingResult);
+            redirectAttributes.addFlashAttribute("showList",false);
+            redirectAttributes.addFlashAttribute("showCard",false);
+            redirectAttributes.addFlashAttribute("showDetailCard",true);
             return "redirect:/leasedetailcard";
         }
-        return "redirect:/leasecard";
+        return "redirect:/leasecard/"+leaseDetailDTO.getContractNo();
     }
 }

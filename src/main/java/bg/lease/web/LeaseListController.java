@@ -16,7 +16,9 @@ public class LeaseListController {
     @GetMapping("/leasinglist")
     public String leaseList(Model model){
         model.addAttribute("ListLease",leaseService.listLease());
-        model.addAttribute("hideCard",true);
+        model.addAttribute("showList",true);
+        model.addAttribute("showCard",false);
+        model.addAttribute("showDetailCard",false);
         return "leaselist";
     }
 }

@@ -30,7 +30,9 @@ public class LeaseCardController {
     public String leaseCard(Model model) {
         model.addAttribute("leaseDetails",new LeaseDetailDTO());
         model.addAttribute("leaseCardDTO",new LeaseCardDTO());
-        model.addAttribute("hideCard",false);
+        model.addAttribute("showList",false);
+        model.addAttribute("showCard",true);
+        model.addAttribute("showDetailCard",false);
         return "leaselist";
     }
 
@@ -41,7 +43,9 @@ public class LeaseCardController {
         if (bindingResult.hasErrors()){
             redirectAttributes.addFlashAttribute("leaseCardDTO",leaseCardDTO);
             redirectAttributes.addFlashAttribute("org.springframework.validation.BindingResult.leaseCardDTO",bindingResult);
-            redirectAttributes.addFlashAttribute("hideCard",false);
+            redirectAttributes.addFlashAttribute("showList",false);
+            redirectAttributes.addFlashAttribute("showCard",true);
+            redirectAttributes.addFlashAttribute("showDetailCard",false);
             return "redirect:/leasecard";
         }
         try {
@@ -49,7 +53,9 @@ public class LeaseCardController {
         } catch (RuntimeException e){
             redirectAttributes.addFlashAttribute("leaseCardDTO",leaseCardDTO);
             redirectAttributes.addFlashAttribute("org.springframework.validation.BindingResult.leaseCardDTO",bindingResult);
-            redirectAttributes.addFlashAttribute("hideCard",false);
+            redirectAttributes.addFlashAttribute("showList",false);
+            redirectAttributes.addFlashAttribute("showCard",true);
+            redirectAttributes.addFlashAttribute("showDetailCard",false);
             return "redirect:/leasecard";
         }
         return "redirect:/leasinglist";
@@ -60,7 +66,9 @@ public class LeaseCardController {
         LeaseCardDTO contract=this.leaseService.editCard(contractNo);
         model.addAttribute("leaseCardDTO",contract);
         model.addAttribute("leaseDetails",this.leaseDetailService.leaseDetail(contractNo));
-        model.addAttribute("hideCard",false);
+        model.addAttribute("showList",false);
+        model.addAttribute("showCard",true);
+        model.addAttribute("showDetailCard",false);
         return "leaselist";
     }
 }

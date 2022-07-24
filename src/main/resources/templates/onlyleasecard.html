@@ -1,5 +1,5 @@
 <th:block>
-    <div id="leasecard" class="container" th:unless="${hideCard}">
+    <div id="leasecard" class="container" th:if="${showCard}">
         <h2 class="text-center text-danger">Lease Card</h2>
         <form
                 th:action="@{/leasecard}"
@@ -256,39 +256,43 @@
             <div class="table-responsive text-light">
                 <table class="table table-striped table-bordered">
                     <thead >
-                    <tr class="ui-icon-key">
-                        <th>
-                            <th:block>
-                                <a th:href="@{/leasedetailcard/{code}/0(code=${leaseCardDTO.contractNo})}"
-                                >add</a>
-                            </th:block>
-                            actions</th>
-                        <th>Vehicle no</th>
-                        <th>Vehicle plate number</th>
-                    </tr>
+                        <tr class="ui-icon-key">
+                            <th>
+                                <th:block>
+                                    <a th:href="@{/leasedetailcard/{code}/0(code=${leaseCardDTO.contractNo})}"
+                                    >add</a>
+                                </th:block>
+                                actions</th>
+                            <th>Vehicle no</th>
+                            <th>Vehicle plate number</th>
+                        </tr>
                     </thead>
-                    <tbody>
-                    <tr class="block" th:each="List : ${leaseDetails}">
-                        <td>
-                            <button type="button" class="btn btn-link" th:onclick="'CallLeaseDetailCard(this)'">edit</button>
-                            <button type="button" class="btn btn-link" th:onclick="'DeleteLeaseDetailCard(this)'">delete</button>
-                        </td>
-                        <td class="td-hide" th:text="${List.getContractNo()}"/>
-                        <td class="td-hide" th:text="${List.getLineNo()}"/>
-                        <td>
-                            <div class="input-group">
-                                <div class="input-group-text arrow icon-down"
-                                     th:onclick="'CreateLookupVehicle(\'' +${List.getLineNo()} +'\',document.getElementById(\''+'leasecard'+'\'))'"></div>
-                                <input th:id="${List.getLineNo()}"
-                                       class="form-control"
-                                       type="text"
-                                       th:value="${List.getVehicleNo()}"
-                                       th:oninput="'SearchVehicle(\''+${List.getLineNo()}+'\',document.getElementById(\''+'leasecard'+'\'))'"
-                                       onblur="HideLookup()"/>
-                            </div>
-                        </td>
-                        <td th:text="${List.getNumberPlate()}"/>
-                    </tr>
+                    <tbody class=" fixedTable">
+                        <tr class="block" th:each="List : ${leaseDetails}">
+                            <td>
+                                <a type="button" class="btn btn-link"
+                                   th:href="@{/leasedetailcard/{code}/{lineno}
+                                        (code=${List.getContractNo()},lineno=${List.getLineNo()})}">edit</a>
+                                <!---
+                                <button type="button" class="btn btn-link" th:onclick="'DeleteLeaseDetailCard(this)'">delete</button>
+                                --->
+                            </td>
+                            <td class="td-hide" th:text="${List.getContractNo()}"/>
+                            <td class="td-hide" th:text="${List.getLineNo()}"/>
+                            <td>
+                                <div class="input-group">
+                                    <div class="input-group-text arrow icon-down"
+                                         th:onclick="'CreateLookupVehicle(\'' +${List.getLineNo()} +'\',document.getElementById(\''+'leasecard'+'\'))'"></div>
+                                    <input th:id="${List.getLineNo()}"
+                                           class="form-control"
+                                           type="text"
+                                           th:value="${List.getVehicleNo()}"
+                                           th:oninput="'SearchVehicle(\''+${List.getLineNo()}+'\',document.getElementById(\''+'leasecard'+'\'))'"
+                                           onblur="HideLookup()"/>
+                                </div>
+                            </td>
+                            <td th:text="${List.getNumberPlate()}"/>
+                        </tr>
                     </tbody>
                 </table>
             </div>
