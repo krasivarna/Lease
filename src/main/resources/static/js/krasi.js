@@ -5,32 +5,6 @@ function GetVendorId() {
     No.value=currentNo;
     HideLookup();
 }
-function CallLeaseCard(obj){
-    window.location='/leasecard/'+getID(obj);
-}
-function CallLeaseDetailCard(obj){
-    window.location='/leasedetailcard/'+getDetailID(obj);
-}
-function CallVendorCard(obj){
-    window.location='/vendorcard/'+getID(obj);
-}
-function CallCountryCard(obj){
-    window.location='/countrycard/'+getID(obj);
-}
-function CallVehicleCard(obj){
-    window.location='/vehiclecard/'+getID(obj);
-}
-function getID(obj){
-    let currentRow=$(obj).closest('tr');
-    let currentID=currentRow.find('td:eq(1)').text();
-    return currentID
-}
-function getDetailID(obj){
-    let currentRow=$(obj).closest('tr');
-    let currentID=currentRow.find('td:eq(1)').text();
-    let currentDetail=currentRow.find('td:eq(2)').text();
-    return currentID+'/'+currentDetail
-}
 function SearchVendor(inp,main){
    if (inp.length>=2){
        CreateLookupVendor(inp,main);
@@ -163,10 +137,10 @@ function HideLookup(){
     }
 }
 function GetVehicleId(){
-    const id=document.getElementById('source_lookup_id').value;
     let currentRow=$(this).closest('tr');
     let currentNo=currentRow.find('td:eq(0)').find('a').text();
-    document.getElementById(id).value=currentNo;
+    let No=document.getElementById('vehicleNo');
+    No.value=currentNo;
     HideLookup();
 }
 function CreateLookupVendor(keySearch,main){
@@ -280,11 +254,7 @@ function CreateLookupVendor(keySearch,main){
 
     ShowLookup(event);
 }
-function CreateLookupVehicle(idElement,main){
-    document.getElementById('source_lookup_id').value=idElement;
-
-    let keySearch=document.getElementById(idElement).value;
-
+function CreateLookupVehicle(keySearch,main){
     let temp=document.getElementById('lookup');
     if (temp!=null){
         temp.remove();
@@ -395,9 +365,9 @@ function CreateLookupVehicle(idElement,main){
 
     ShowLookup(event);
 }
-function SearchVehicle(idElement,main){
-    if (document.getElementById(idElement).value.length>=2){
-        CreateLookupVehicle(idElement,main);
+function SearchVehicle(inp,main){
+    if (inp.length>=2){
+        CreateLookupVehicle(inp,main);
     }
 }
 

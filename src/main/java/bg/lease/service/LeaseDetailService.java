@@ -65,21 +65,22 @@ public class LeaseDetailService {
             leaseDetail=byNo.get();
         } else {
             leaseDetail=new LeaseDetailEntity();
+            leaseDetail.setContractNo(leaseDetailDTO.getContractNo());
+            Optional<LeaseDetailEntity> optMaxLineNo=this.leaseDetailRepository.findLastLineNo(leaseDetailDTO.getContractNo());
+            int lineNo=0;
+            if (optMaxLineNo.isEmpty()) {
+                lineNo=1000;
+            } else {
+                lineNo=optMaxLineNo.get().getLineNo()+1000;
+            }
+            leaseDetail.setLineNo(lineNo);
         }
         Optional<VehicleEntity> optVehicle=vehicleRepository.findByNo(leaseDetailDTO.getVehicleNo());
         if (optVehicle.isEmpty()){
             throw  new RuntimeException("vehicle not exit");
         }
-        leaseDetail.setContractNo(leaseDetailDTO.getContractNo());
-        Optional<LeaseDetailEntity> optMaxLineNo=this.leaseDetailRepository.findLastLineNo(leaseDetailDTO.getContractNo());
-        int lineNo=0;
-        if (optMaxLineNo.isEmpty()) {
-            lineNo=1000;
-        } else {
-            lineNo=optMaxLineNo.get().getLineNo()+1000;
-        }
+
         leaseDetail.setVehicle(optVehicle.get());
-        leaseDetail.setLineNo(lineNo);
         leaseDetailRepository.save(leaseDetail);
     }
 }

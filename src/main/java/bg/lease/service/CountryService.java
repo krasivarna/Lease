@@ -75,4 +75,12 @@ public class CountryService {
         CountryEntity country=optCountry.get();
         return map(country);
     }
+
+    public Boolean deleteCard(String countryNo) {
+        Optional<CountryEntity> optCountry=countryRepository.deleteByNo(countryNo);
+        if (optCountry.isEmpty()){
+            throw new RuntimeException("country not found");
+        }
+        return true;
+    }
 }

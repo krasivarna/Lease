@@ -15,4 +15,5 @@ public interface CountryRepository extends JpaRepository<CountryEntity,String> {
     List<CountryEntity> findByKeyword (@Param("keyword") String keyword);
 
     Optional<CountryEntity> findByNo(String no);
+    Optional<CountryEntity> deleteByNo(String no);
 }

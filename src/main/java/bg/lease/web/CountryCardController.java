@@ -2,9 +2,12 @@ package bg.lease.web;
 
 import bg.lease.model.dto.CountryDTO;
 import bg.lease.service.CountryService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -48,5 +51,14 @@ public class CountryCardController {
         model.addAttribute("countryDTO",country);
         model.addAttribute("hideCard",false);
         return "countrylist";
+    }
+
+    @DeleteMapping("/deletecountrycard/{code}")
+    public ResponseEntity<String> deleteCountryCard(Model model, @PathVariable("code") String countryNo){
+        model.addAttribute("hideCard",false);
+        if (!this.countryService.deleteCard(countryNo)) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(countryNo,HttpStatus.OK);
     }
 }
