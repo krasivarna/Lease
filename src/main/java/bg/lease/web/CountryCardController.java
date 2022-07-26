@@ -53,12 +53,10 @@ public class CountryCardController {
         return "countrylist";
     }
 
-    @DeleteMapping("/deletecountrycard/{code}")
-    public ResponseEntity<String> deleteCountryCard(Model model, @PathVariable("code") String countryNo){
+    @GetMapping("/deletecountrycard/{code}")
+    public String deleteCountryCard(Model model, @PathVariable("code") String countryNo){
         model.addAttribute("hideCard",false);
-        if (!this.countryService.deleteCard(countryNo)) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-        return new ResponseEntity<>(countryNo,HttpStatus.OK);
+        this.countryService.deleteCard(countryNo);
+        return "redirect:/countrylist";
     }
 }
