@@ -49,4 +49,11 @@ public class VehicleCardController {
         model.addAttribute("hideCard",false);
         return "vehiclelist";
     }
+
+    @GetMapping("/deletevehiclecard/{code}")
+    public String deleteVehicleCard(Model model, @PathVariable("code") String vehicleNo){
+        model.addAttribute("hideCard",false);
+        this.vehicleService.deleteCard(vehicleNo);
+        return "redirect:/vehiclelist";
+    }
 }

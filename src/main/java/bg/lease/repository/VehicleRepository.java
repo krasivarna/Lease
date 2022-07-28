@@ -13,4 +13,6 @@ public interface VehicleRepository extends JpaRepository<VehicleEntity,String> {
 
     @Query(value="Select * from vehicle v where v.number_plate like %:keyword%  or v.no like %:keyword% or v.vehicle_model like %:keyword%",nativeQuery = true)
     List<VehicleEntity> findByKeyword (@Param("keyword") String keyword);
+
+    void deleteByNo(String vehicleNo);
 }

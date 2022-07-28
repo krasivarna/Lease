@@ -48,4 +48,11 @@ public class VendorCardController {
         model.addAttribute("hideCard",false);
         return "vendorlist";
     }
+
+    @GetMapping("/deletevendorcard/{code}")
+    public String deleteVendorCard(Model model, @PathVariable("code") String vendorNo){
+        model.addAttribute("hideCard",false);
+        this.vendorService.deleteCard(vendorNo);
+        return "redirect:/vendorlist";
+    }
 }

@@ -22,9 +22,7 @@
                     <tr class="block" th:each="vendList : ${vendorList}">
                         <td>
                             <a type="button" class="btn btn-link" th:href="@{/vendorcard/{code}(code=${vendList.getNo()})}">edit</a>
-                            <!---
-                            <button type="button" class="btn btn-link" th:onclick="'DeleteVendorCard(this)'">delete</button>
-                            --->
+                            <a type="button" class="btn btn-link" th:href="@{/deletevendorcard/{code}(code=${vendList.getNo()})}">delete</a>
                         </td>
                         <td th:text="${vendList.getNo()}"/>
                         <td th:text="${vendList.getName()}"/>

@@ -7,6 +7,7 @@ import bg.lease.model.dto.VendorDTO;
 import bg.lease.repository.CountryRepository;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -76,6 +77,7 @@ public class CountryService {
         return map(country);
     }
 
+    @Transactional
     public void deleteCard(String countryNo) {
         countryRepository.deleteByNo(countryNo);
     }

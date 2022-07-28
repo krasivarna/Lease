@@ -56,4 +56,13 @@ public class LeaseDetailCardController {
         }
         return "redirect:/leasecard/"+leaseDetailDTO.getContractNo();
     }
+
+    @GetMapping("/deleteleasedetailcard/{code}/{lineno}")
+    public String deleteLeaseDeatilCard(Model model,
+                                        @PathVariable("code") String contractNo,
+                                        @PathVariable("lineno") int lineNo){
+        model.addAttribute("hideCard",false);
+        this.leaseDetailService.deleteCard(contractNo,lineNo);
+        return "redirect:/leasecard/"+contractNo;
+    }
 }

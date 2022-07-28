@@ -13,4 +13,6 @@ public interface VendorRepository extends JpaRepository<VendorEntity,String> {
 
     @Query(value="Select * from vendor v where v.Name like %:keyword%  or v.vat_registration like %:keyword% or v.no like %:keyword%",nativeQuery = true)
     List<VendorEntity> findByKeyword (@Param("keyword") String keyword);
+
+    void deleteByNo(String vendorNo);
 }

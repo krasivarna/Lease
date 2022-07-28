@@ -273,9 +273,9 @@
                                 <a type="button" class="btn btn-link"
                                    th:href="@{/leasedetailcard/{code}/{lineno}
                                         (code=${List.getContractNo()},lineno=${List.getLineNo()})}">edit</a>
-                                <!---
-                                <button type="button" class="btn btn-link" th:onclick="'DeleteLeaseDetailCard(this)'">delete</button>
-                                --->
+                                <a type="button" class="btn btn-link"
+                                   th:href="@{/deleteleasedetailcard/{code}/{lineno}
+                                        (code=${List.getContractNo()},lineno=${List.getLineNo()})}">delete</a>
                             </td>
                             <td class="td-hide" th:text="${List.getContractNo()}"/>
                             <td class="td-hide" th:text="${List.getLineNo()}"/>

@@ -19,9 +19,7 @@
                     <tr class="block" th:each="regionList : ${vehicleList}">
                         <td>
                             <a type="button" class="btn btn-link" th:href="@{/vehiclecard/{code}(code=${regionList.getNo()})}">edit</a>
-                            <!---
-                            <button type="button" class="btn btn-link" th:onclick="'DeleteVehicleCard(this)'">delete</button>
-                            --->
+                            <a type="button" class="btn btn-link" th:href="@{/deletevehiclecard/{code}(code=${regionList.getNo()})}">delete</a>
                         </td>
                         <td th:text="${regionList.getNo()}"/>
                         <td th:text="${regionList.getNumberPlate()}"/>

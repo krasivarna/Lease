@@ -8,6 +8,7 @@ import bg.lease.repository.CountryRepository;
 import bg.lease.repository.VendorRepository;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -94,5 +95,10 @@ public class VendorService {
         }
         VendorEntity vendor=optVendor.get();
         return map(vendor);
+    }
+
+    @Transactional
+    public void deleteCard(String vendorNo) {
+        vendorRepository.deleteByNo(vendorNo);
     }
 }

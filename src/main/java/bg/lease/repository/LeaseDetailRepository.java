@@ -16,4 +16,6 @@ public interface LeaseDetailRepository extends JpaRepository<LeaseDetailEntity, 
 
     @Query(value="select * from leasedetail v where v.contract_No=:contractNo order by v.line_no desc limit 1",nativeQuery = true)
     Optional<LeaseDetailEntity> findLastLineNo(@Param("contractNo") String contractNo);
+
+    void deleteByContractNoAndLineNo(String contractNo, int lineNo);
 }

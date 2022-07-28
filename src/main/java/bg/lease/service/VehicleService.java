@@ -9,6 +9,7 @@ import bg.lease.model.dto.VendorDTO;
 import bg.lease.repository.VehicleRepository;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -70,5 +71,10 @@ public class VehicleService {
             return this.vehicleRepository.findByKeyword(searchKey).stream().
                     map(this::map).collect(Collectors.toList());
         }
+    }
+
+    @Transactional
+    public void deleteCard(String vehicleNo) {
+        vehicleRepository.deleteByNo(vehicleNo);
     }
 }
