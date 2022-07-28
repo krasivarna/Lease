@@ -18,4 +18,6 @@ public interface LeaseDetailRepository extends JpaRepository<LeaseDetailEntity, 
     Optional<LeaseDetailEntity> findLastLineNo(@Param("contractNo") String contractNo);
 
     void deleteByContractNoAndLineNo(String contractNo, int lineNo);
+
+    void deleteByContractNo(String contractNo);
 }

@@ -2,6 +2,7 @@ package bg.lease.web;
 
 import bg.lease.model.dto.LeaseCardDTO;
 import bg.lease.model.dto.LeaseDetailDTO;
+import bg.lease.model.exceptions.WrongLeaseStatusException;
 import bg.lease.service.LeaseDetailService;
 import bg.lease.service.LeaseService;
 import org.springframework.stereotype.Controller;
@@ -69,6 +70,21 @@ public class LeaseCardController {
         model.addAttribute("showList",false);
         model.addAttribute("showCard",true);
         model.addAttribute("showDetailCard",false);
+        return "leaselist";
+    }
+
+    @GetMapping("/deleteleasecard/{code}")
+    public String deleteLeaseCard(@PathVariable("code") String contractNo,
+                                  Model model) throws WrongLeaseStatusException {
+        try{
+            this.leaseService.deleteCard(contractNo);
+        } catch (WrongLeaseStatusException e) {
+            model.addAttribute("hasError",true);
+            model.addAttribute("deleteError",e.getMessage());
+            model.addAttribute("showList",true);
+            model.addAttribute("showCard",false);
+            model.addAttribute("showDetailCard",false);
+        }
         return "leaselist";
     }
 }

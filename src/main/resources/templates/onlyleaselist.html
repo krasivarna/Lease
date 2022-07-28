@@ -20,9 +20,7 @@
                     <tr class="block" th:each="List : ${ListLease}">
                         <td>
                             <a type="button" class="btn btn-link" th:href="@{/leasecard/{code}(code=${List.getContractNo()})}">edit</a>
-                            <!---
-                            <button type="button" class="btn btn-link" th:onclick="'DeleteLeaseCard(this)'">delete</button>
-                            --->
+                            <a type="button" class="btn btn-link" th:href="@{/deleteleasecard/{code}(code=${List.getContractNo()})}">delete</a>
                         </td>
                         <td th:text="${List.getContractNo()}"/>
                         <td th:text="${List.getVendor().getNo()}"/>
@@ -32,6 +30,9 @@
                     </tbody>
                 </table>
             </div>
+            <small id="error" class="text-white" th:if="${hasError}" th:text="${deleteError}">
+                error
+            </small>
             <div class="modal-footer">
                 <a id="newlist" class="key btn btn-lg" th:href="@{/leasecard}">New</a>
                 <a id="cancellist" class="key btn btn-secondary" th:href="@{/}">Close</a>
