@@ -1,10 +1,14 @@
 package bg.lease.model.dto;
 
+import java.math.BigDecimal;
+
 public class LeaseDetailDTO {
     private String contractNo;
     private int lineNo;
     private String vehicleNo;
     private String numberPlate;
+    private BigDecimal principalExclVat;
+    private BigDecimal principalInclVat;
 
     public LeaseDetailDTO() {
     }
@@ -39,5 +43,21 @@ public class LeaseDetailDTO {
 
     public void setNumberPlate(String numberPlate) {
         this.numberPlate = numberPlate;
+    }
+
+    public BigDecimal getPrincipalExclVat() {
+        return principalExclVat;
+    }
+
+    public void setPrincipalExclVat(BigDecimal principalExclVat) {
+        this.principalExclVat = principalExclVat;
+    }
+
+    public BigDecimal getPrincipalInclVat() {
+        return principalInclVat;
+    }
+
+    public void setPrincipalInclVat(BigDecimal principalInclVat) {
+        this.principalInclVat = principalInclVat;
     }
 }

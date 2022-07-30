@@ -4,6 +4,7 @@ import bg.lease.model.dto.LeaseDetailId;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
+import java.math.BigDecimal;
 
 @Entity
 @Table(name="leasedetail")
@@ -20,6 +21,12 @@ public class LeaseDetailEntity {
 
     @ManyToOne
     private VehicleEntity vehicle;
+
+    @Column(name="Principal_Excl_Vat")
+    private BigDecimal principalExclVat;
+
+    @Column(name="Principal_Incl_Vat")
+    private BigDecimal principalInclVat;
 
     public String getContractNo() {
         return contractNo;
@@ -43,6 +50,22 @@ public class LeaseDetailEntity {
 
     public void setVehicle(VehicleEntity vehicle) {
         this.vehicle = vehicle;
+    }
+
+    public BigDecimal getPrincipalExclVat() {
+        return principalExclVat;
+    }
+
+    public void setPrincipalExclVat(BigDecimal principalExclVat) {
+        this.principalExclVat = principalExclVat;
+    }
+
+    public BigDecimal getPrincipalInclVat() {
+        return principalInclVat;
+    }
+
+    public void setPrincipalInclVat(BigDecimal principalInclVat) {
+        this.principalInclVat = principalInclVat;
     }
 
     public LeaseDetailEntity() {

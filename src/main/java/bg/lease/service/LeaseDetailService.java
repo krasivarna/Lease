@@ -37,6 +37,8 @@ public class LeaseDetailService {
         result.setLineNo(detail.getLineNo());
         result.setVehicleNo(detail.getVehicle().getNo());
         result.setNumberPlate(detail.getVehicle().getNumberPlate());
+        result.setPrincipalExclVat(detail.getPrincipalExclVat());
+        result.setPrincipalInclVat(detail.getPrincipalInclVat());
 
         return result;
     }
@@ -82,6 +84,8 @@ public class LeaseDetailService {
         }
 
         leaseDetail.setVehicle(optVehicle.get());
+        leaseDetail.setPrincipalExclVat(leaseDetailDTO.getPrincipalExclVat());
+        leaseDetail.setPrincipalInclVat(leaseDetailDTO.getPrincipalInclVat());
         leaseDetailRepository.save(leaseDetail);
     }
 

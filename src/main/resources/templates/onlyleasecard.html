@@ -7,250 +7,315 @@
                 th:object="${leaseCardDTO}"
                 class="text-white main-form mx-auto col-md-12 d-flex flex-column justify-content-center">
             <input class="td-hide" id="source_lookup_id"/>
-            <div class="row">
-                <div class="form-group col-md-3 mb-3">
-                    <label for="contractNo" class="font-weight-bold">Contract No.</label>
-                    <input id="contractNo"
-                           th:field="*{contractNo}"
-                           th:errorclass="is-invalid"
-                           type="text"
-                           class="form-control"
-                           placeholder="Contract No."/>
-                    <small
-                            id="contractNoHelpInline"
-                            class="invalid-feedback bg-danger text-light rounded">
-                        Contract No. is mandatory or maximum 20 characters
-                    </small>
-                </div>
-                <div class="form-group col-md-3 mb-3">
-                    <label for="contractDate" class="font-weight-bold">Contract Date</label>
-                    <input id="contractDate"
-                           th:field="*{contractDate}"
-                           th:errorclass="is-invalid"
-                           type="date"
-                           class="form-control"
-                           placeholder="Contract Date"/>
-                    <small
-                            id="contractDateHelpInline"
-                            class="invalid-feedback bg-danger text-light rounded">
-                        Invalid contract date
-                    </small>
-                </div>
-                <div class="form-group col-md-3 mb-3">
-                    <label for="vendorNo" class="font-weight-bold">Vendor No.</label>
-                    <div class="input-group">
-                        <div class="input-group-text arrow icon-down" onclick="CreateLookupVendor(document.getElementById('vendorNo').value,
-                                                                                              document.getElementById('leasecard'))" id="btn2"></div>
-                        <input id="vendorNo"
-                               th:field="*{vendorNo}"
+            <ul class="nav nav-tabs mt-5">
+                <li class="nav-item"><a href="#page1" class="nav-link active"
+                                        data-bs-toggle="tab">page 1</a></li>
+                <li class="nav-item"><a href="#page2" class="nav-link"
+                                        data-bs-toggle="tab">page 2</a></li>
+                <li class="nav-item"><a href="#page3" class="nav-link"
+                                        data-bs-toggle="tab">page 3</a></li>
+            </ul>
+            <div class="tab-content">
+                <div class="tab-pane fade show active" id="page1">
+                    <div class="row">
+                        <div class="form-group col-md-3 mb-3">
+                        <label for="contractNo" class="font-weight-bold">Contract No.</label>
+                        <input id="contractNo"
+                               th:field="*{contractNo}"
                                th:errorclass="is-invalid"
-                               class="form-control"
                                type="text"
-                               oninput="SearchVendor(document.getElementById('vendorNo').value,
-                                             document.getElementById('leasecard'))"
-                               onblur="HideLookup()"
-                        />
+                               class="form-control"
+                               placeholder="Contract No."/>
+                        <small
+                                id="contractNoHelpInline"
+                                class="invalid-feedback bg-danger text-light rounded">
+                            Contract No. is mandatory or maximum 20 characters
+                        </small>
+                    </div>
+                        <div class="form-group col-md-3 mb-3">
+                        <label for="contractDate" class="font-weight-bold">Contract Date</label>
+                        <input id="contractDate"
+                               th:field="*{contractDate}"
+                               th:errorclass="is-invalid"
+                               type="date"
+                               class="form-control"
+                               placeholder="Contract Date"/>
+                        <small
+                                id="contractDateHelpInline"
+                                class="invalid-feedback bg-danger text-light rounded">
+                            Invalid contract date
+                        </small>
+                    </div>
+                        <div class="form-group col-md-3 mb-3">
+                        <label for="vendorNo" class="font-weight-bold">Vendor No.</label>
+                        <div class="input-group">
+                            <div class="input-group-text arrow icon-down" onclick="CreateLookupVendor(document.getElementById('vendorNo').value,
+                                                                                                  document.getElementById('leasecard'))" id="btn2"></div>
+                            <input id="vendorNo"
+                                   th:field="*{vendorNo}"
+                                   th:errorclass="is-invalid"
+                                   class="form-control"
+                                   type="text"
+                                   oninput="SearchVendor(document.getElementById('vendorNo').value,
+                                                 document.getElementById('leasecard'))"
+                                   onblur="HideLookup()"
+                            />
+                        </div>
+                    </div>
+                        <div class="form-group col-md-3 mb-3">
+                        <label for="dimension" class="font-weight-bold">Dimension</label>
+                        <input id="dimension"
+                               th:field="*{dimension}"
+                               th:errorclass="is-invalid"
+                               type="text"
+                               class="form-control"
+                               placeholder="Dimension"/>
+                        <small
+                                id="dimensionHelpInLine"
+                                class="invalid-feedback bg-danger text-light rounded">
+                            Invalid dimension
+                        </small>
+                    </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group col-md-3 mb-3">
+                        <label for="invoicetype" class="font-weight-bold">Invoice type</label>
+                        <select id="invoicetype"
+                                th:field="*{invoiceType}"
+                                th:errorclass="is-invalid"
+                                type="text"
+                                class="form-control">
+                            <option value="">- Select invoice type -</option>
+                            <option th:each="invType : ${T(bg.lease.model.enums.InvoiceType).values()}"
+                                    th:value="${invType}" th:text="${invType}" th:selected="${invType}==*{invoiceType}"></option>
+                        </select>
+                        <small
+                                id="invoicetypeHelpInLine"
+                                class="invalid-feedback bg-danger text-light rounded">
+                            Invalid invoice type
+                        </small>
+                    </div>
+                        <div class="form-group col-md-3 mb-3">
+                        <label for="principalPeriod" class="font-weight-bold">Principal Period</label>
+                        <input id="principalPeriod"
+                               th:field="*{principalPeriod}"
+                               th:errorclass="is-invalid"
+                               type="number"
+                               class="form-control"
+                               placeholder="Principal period"/>
+                        <small
+                                id="principalPeriodHelpInline"
+                                class="invalid-feedback bg-danger text-light rounded">
+                            Invalid principal period
+                        </small>
+                    </div>
+                        <div class="form-group col-md-3 mb-3">
+                        <label for="paymenttype" class="font-weight-bold">Payment type</label>
+                        <select id="paymenttype"
+                                th:field="*{paymentType}"
+                                th:errorclass="is-invalid"
+                                type="text"
+                                class="form-control">
+                            <option value="">- Select payment type -</option>
+                            <option th:each="payType : ${T(bg.lease.model.enums.PaymentType).values()}"
+                                    th:value="${payType}" th:text="${payType}" th:selected="${payType}==*{paymentType}"></option>
+                        </select>
+                        <small
+                                id="paymenttypeHelpInLine"
+                                class="invalid-feedback bg-danger text-light rounded">
+                            Invalid payment type
+                        </small>
+                    </div>
+                        <div class="form-group col-md-3 mb-3">
+                        <label for="loanPaid" class="font-weight-bold">Loan paid</label>
+                        <select id="loanPaid"
+                                th:field="*{loanPaid}"
+                                th:errorclass="is-invalid"
+                                type="text"
+                                class="form-control">
+                            <option value="">- Select loan paid -</option>
+                            <option th:each="loanPaid : ${T(bg.lease.model.enums.LoanPaid).values()}"
+                                    th:value="${loanPaid}" th:text="${loanPaid}" th:selected="${loanPaid}==*{loanPaid}"></option>
+                        </select>
+                        <small
+                                id="loanpaidHelpInLine"
+                                class="invalid-feedback bg-danger text-light rounded">
+                            Invalid loan paid
+                        </small>
+                    </div>
                     </div>
                 </div>
-                <div class="form-group col-md-3 mb-3">
-                    <label for="dimension" class="font-weight-bold">Dimension</label>
-                    <input id="dimension"
-                           th:field="*{dimension}"
-                           th:errorclass="is-invalid"
-                           type="text"
-                           class="form-control"
-                           placeholder="Dimension"/>
-                    <small
-                            id="dimensionHelpInLine"
-                            class="invalid-feedback bg-danger text-light rounded">
-                        Invalid dimension
-                    </small>
+                <div class="tab-pane fade" id="page2">
+                    <div class="row">
+                        <div class="form-group col-md-3 mb-3">
+                            <label for="loantype" class="font-weight-bold">Loan type</label>
+                            <select id="loantype"
+                                th:field="*{loanType}"
+                                th:errorclass="is-invalid"
+                                type="text"
+                                class="form-control">
+                                <option value="">- Select Loan type -</option>
+                                <option th:each="loanType : ${T(bg.lease.model.enums.LoanType).values()}"
+                                    th:value="${loanType}" th:text="${loanType}" th:selected="${loanType}==*{loanType}"></option>
+                            </select>
+                            <small
+                                id="loantypeHelpInLine"
+                                class="invalid-feedback bg-danger text-light rounded">
+                                Invalid loan type
+                            </small>
+                        </div>
+                        <div class="form-group col-md-3 mb-3">
+                        <label for="noFirstMonth" class="font-weight-bold">No. first month</label>
+                        <input id="noFirstMonth"
+                               th:field="*{noFirstMonth}"
+                               th:errorclass="is-invalid"
+                               type="number"
+                               class="form-control"
+                               placeholder="No. first month"/>
+                        <small
+                                id="noFirstMonthHelpInline"
+                                class="invalid-feedback bg-danger text-light rounded">
+                            Number first month must positive.
+                        </small>
+                    </div>
+                        <div class="form-group col-md-3 mb-3">
+                        <label for="interestWithVAT" class="font-weight-bold" >Interest with VAT</label>
+                        <input id="interestWithVAT"
+                               th:field="*{interestWithVAT}"
+                               th:errorclass="is-invalid"
+                               type="checkbox"
+                               class="form-control">
+                        <small
+                                id="interestWithVATHelpInline"
+                                class="invalid-feedback bg-danger text-light rounded">
+                            interest with VAT
+                        </small>
+                    </div>
+                        <div class="form-group col-md-3 mb-3">
+                        <label for="datemodifypercent" class="font-weight-bold">Date modify percent</label>
+                        <input id="datemodifypercent"
+                               th:field="*{dateModifyPercent}"
+                               th:errorclass="is-invalid"
+                               type="date"
+                               class="form-control">
+                        <small
+                                id="datemodifypercentHelpInline"
+                                class="invalid-feedback bg-danger text-light rounded">
+                            Date
+                        </small>
+                    </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group col-md-3 mb-3">
+                        <label for="currencyCode" class="font-weight-bold">Currency code</label>
+                        <input id="currencyCode"
+                               th:field="*{currencyCode}"
+                               th:errorclass="is-invalid"
+                               type="text"
+                               class="form-control"
+                               placeholder="Currency code"/>
+                        <small
+                                id="currencyCodeHelpInline"
+                                class="invalid-feedback bg-danger text-light rounded">
+                            Currency code maximum 10 characters.
+                        </small>
+                    </div>
+                        <div class="form-group col-md-3 mb-3">
+                        <label for="leaseStatus" class="font-weight-bold">Loan type</label>
+                        <select id="leaseStatus"
+                                th:field="*{leaseStatus}"
+                                th:errorclass="is-invalid"
+                                type="text"
+                                class="form-control">
+                            <option value="">- Select Lease status -</option>
+                            <option th:each="leaseStatus : ${T(bg.lease.model.enums.LeaseStatus).values()}"
+                                    th:value="${leaseStatus}" th:text="${leaseStatus}" th:selected="${leaseStatus}==*{leaseStatus}"></option>
+                        </select>
+                        <small
+                                id="leaseStatusHelpInLine"
+                                class="invalid-feedback bg-danger text-light rounded">
+                            Invalid lease status
+                        </small>
+                    </div>
+                        <div class="form-group col-md-3 mb-3">
+                        <label for="payoffDate" class="font-weight-bold">Begin payoff date</label>
+                        <input id="payoffDate"
+                               th:field="*{beginPayOffDate}"
+                               th:errorclass="is-invalid"
+                               type="date"
+                               class="form-control"/>
+                        <small
+                                id="payoffDateHelpInline"
+                                class="invalid-feedback bg-danger text-light rounded">
+                            Invalid payoff date
+                        </small>
+                    </div>
+                        <div class="form-group col-md-3 mb-3">
+                        <label for="graceperiod" class="font-weight-bold">Principal grace period</label>
+                        <input id="graceperiod"
+                               th:field="*{principalGracePeriod}"
+                               th:errorclass="is-invalid"
+                               type="number"
+                               class="form-control"
+                               placeholder="Principal grace period"/>
+                        <small
+                                id="graceperiodHelpInline"
+                                class="invalid-feedback bg-danger text-light rounded">
+                            Period is positive.
+                        </small>
+                    </div>
+                    </div>
                 </div>
-            </div>
-            <div class="row">
-                <div class="form-group col-md-3 mb-3">
-                    <label for="invoicetype" class="font-weight-bold">Invoice type</label>
-                    <select id="invoicetype"
-                            th:field="*{invoiceType}"
-                            th:errorclass="is-invalid"
-                            type="text"
-                            class="form-control">
-                        <option value="">- Select invoice type -</option>
-                        <option th:each="invType : ${T(bg.lease.model.enums.InvoiceType).values()}"
-                                th:value="${invType}" th:text="${invType}" th:selected="${invType}==*{invoiceType}"></option>
-                    </select>
-                    <small
-                            id="invoicetypeHelpInLine"
-                            class="invalid-feedback bg-danger text-light rounded">
-                        Invalid invoice type
-                    </small>
-                </div>
-                <div class="form-group col-md-3 mb-3">
-                    <label for="principalPeriod" class="font-weight-bold">Principal Period</label>
-                    <input id="principalPeriod"
-                           th:field="*{principalPeriod}"
-                           th:errorclass="is-invalid"
-                           type="number"
-                           class="form-control"
-                           placeholder="Principal period"/>
-                    <small
-                            id="principalPeriodHelpInline"
-                            class="invalid-feedback bg-danger text-light rounded">
-                        Invalid principal period
-                    </small>
-                </div>
-                <div class="form-group col-md-3 mb-3">
-                    <label for="paymenttype" class="font-weight-bold">Payment type</label>
-                    <select id="paymenttype"
-                            th:field="*{paymentType}"
-                            th:errorclass="is-invalid"
-                            type="text"
-                            class="form-control">
-                        <option value="">- Select payment type -</option>
-                        <option th:each="payType : ${T(bg.lease.model.enums.PaymentType).values()}"
-                                th:value="${payType}" th:text="${payType}" th:selected="${payType}==*{paymentType}"></option>
-                    </select>
-                    <small
-                            id="paymenttypeHelpInLine"
-                            class="invalid-feedback bg-danger text-light rounded">
-                        Invalid payment type
-                    </small>
-                </div>
-                <div class="form-group col-md-3 mb-3">
-                    <label for="loanPaid" class="font-weight-bold">Loan paid</label>
-                    <select id="loanPaid"
-                            th:field="*{loanPaid}"
-                            th:errorclass="is-invalid"
-                            type="text"
-                            class="form-control">
-                        <option value="">- Select loan paid -</option>
-                        <option th:each="loanPaid : ${T(bg.lease.model.enums.LoanPaid).values()}"
-                                th:value="${loanPaid}" th:text="${loanPaid}" th:selected="${loanPaid}==*{loanPaid}"></option>
-                    </select>
-                    <small
-                            id="loanpaidHelpInLine"
-                            class="invalid-feedback bg-danger text-light rounded">
-                        Invalid loan paid
-                    </small>
-                </div>
-            </div>
-            <div class="row">
-                <div class="form-group col-md-3 mb-3">
-                    <label for="loantype" class="font-weight-bold">Loan type</label>
-                    <select id="loantype"
-                            th:field="*{loanType}"
-                            th:errorclass="is-invalid"
-                            type="text"
-                            class="form-control">
-                        <option value="">- Select Loan type -</option>
-                        <option th:each="loanType : ${T(bg.lease.model.enums.LoanType).values()}"
-                                th:value="${loanType}" th:text="${loanType}" th:selected="${loanType}==*{loanType}"></option>
-                    </select>
-                    <small
-                            id="loantypeHelpInLine"
-                            class="invalid-feedback bg-danger text-light rounded">
-                        Invalid loan type
-                    </small>
-                </div>
-                <div class="form-group col-md-3 mb-3">
-                    <label for="noFirstMonth" class="font-weight-bold">No. first month</label>
-                    <input id="noFirstMonth"
-                           th:field="*{noFirstMonth}"
-                           th:errorclass="is-invalid"
-                           type="number"
-                           class="form-control"
-                           placeholder="No. first month"/>
-                    <small
-                            id="noFirstMonthHelpInline"
-                            class="invalid-feedback bg-danger text-light rounded">
-                        Number first month must positive.
-                    </small>
-                </div>
-                <div class="form-group col-md-3 mb-3">
-                    <label for="interestWithVAT" class="font-weight-bold" >Interest with VAT</label>
-                    <input id="interestWithVAT"
-                           th:field="*{interestWithVAT}"
-                           th:errorclass="is-invalid"
-                           type="checkbox"
-                           class="form-control">
-                    <small
-                            id="interestWithVATHelpInline"
-                            class="invalid-feedback bg-danger text-light rounded">
-                        interest with VAT
-                    </small>
-                </div>
-                <div class="form-group col-md-3 mb-3">
-                    <label for="datemodifypercent" class="font-weight-bold">Date modify percent</label>
-                    <input id="datemodifypercent"
-                           th:field="*{dateModifyPercent}"
-                           th:errorclass="is-invalid"
-                           type="date"
-                           class="form-control">
-                    <small
-                            id="datemodifypercentHelpInline"
-                            class="invalid-feedback bg-danger text-light rounded">
-                        Date
-                    </small>
-                </div>
-            </div>
-            <div class="row">
-                <div class="form-group col-md-3 mb-3">
-                    <label for="currencyCode" class="font-weight-bold">Currency code</label>
-                    <input id="currencyCode"
-                           th:field="*{currencyCode}"
-                           th:errorclass="is-invalid"
-                           type="text"
-                           class="form-control"
-                           placeholder="Currency code"/>
-                    <small
-                            id="currencyCodeHelpInline"
-                            class="invalid-feedback bg-danger text-light rounded">
-                        Currency code maximum 10 characters.
-                    </small>
-                </div>
-                <div class="form-group col-md-3 mb-3">
-                    <label for="leaseStatus" class="font-weight-bold">Loan type</label>
-                    <select id="leaseStatus"
-                            th:field="*{leaseStatus}"
-                            th:errorclass="is-invalid"
-                            type="text"
-                            class="form-control">
-                        <option value="">- Select Lease status -</option>
-                        <option th:each="leaseStatus : ${T(bg.lease.model.enums.LeaseStatus).values()}"
-                                th:value="${leaseStatus}" th:text="${leaseStatus}" th:selected="${leaseStatus}==*{leaseStatus}"></option>
-                    </select>
-                    <small
-                            id="leaseStatusHelpInLine"
-                            class="invalid-feedback bg-danger text-light rounded">
-                        Invalid lease status
-                    </small>
-                </div>
-                <div class="form-group col-md-3 mb-3">
-                    <label for="payoffDate" class="font-weight-bold">Begin payoff date</label>
-                    <input id="payoffDate"
-                           th:field="*{beginPayOffDate}"
-                           th:errorclass="is-invalid"
-                           type="date"
-                           class="form-control"/>
-                    <small
-                            id="payoffDateHelpInline"
-                            class="invalid-feedback bg-danger text-light rounded">
-                        Invalid payoff date
-                    </small>
-                </div>
-                <div class="form-group col-md-3 mb-3">
-                    <label for="graceperiod" class="font-weight-bold">Principal grace period</label>
-                    <input id="graceperiod"
-                           th:field="*{principalGracePeriod}"
-                           th:errorclass="is-invalid"
-                           type="number"
-                           class="form-control"
-                           placeholder="Principal grace period"/>
-                    <small
-                            id="graceperiodHelpInline"
-                            class="invalid-feedback bg-danger text-light rounded">
-                        Period is positive.
-                    </small>
+                <div class="tab-pane fade" id="page3">
+                    <div class="row">
+                        <div class="form-group col-md-3 mb-3">
+                            <label for="principalinterest" class="font-weight-bold">Principal Interest</label>
+                            <input id="principalinterest"
+                                   th:field="*{principalInterest}"
+                                   th:errorclass="is-invalid"
+                                   type="number" step="0.01"
+                                   class="form-control"
+                                   placeholder="Principal interest"/>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group col-md-3 mb-3">
+                            <label for="principalExclVat" class="font-weight-bold">Principal Excl VAT</label>
+                            <input id="principalExclVat"
+                                   th:field="*{principalExclVAT}"
+                                   th:errorclass="is-invalid"
+                                   type="number" step="0.01"
+                                   class="form-control"
+                                   placeholder="Principal Excl VAT"/>
+                        </div>
+                        <div class="form-group col-md-3 mb-3">
+                            <label for="principalInclVat" class="font-weight-bold">Principal Incl VAT</label>
+                            <input id="principalInclVat"
+                                   th:field="*{principalInclVAT}"
+                                   th:errorclass="is-invalid"
+                                   type="number" step="0.01"
+                                   class="form-control"
+                                   placeholder="Principal Incl VAT"/>
+                        </div>
+                        <div class="form-group col-md-3 mb-3">
+                            <label for="beginPaymentExclVat" class="font-weight-bold">Begin Payment Excl VAT</label>
+                            <input id="beginPaymentExclVat"
+                                   th:field="*{beginPaymentExclVAT}"
+                                   th:errorclass="is-invalid"
+                                   type="number" step="0.01"
+                                   class="form-control"
+                                   placeholder="Begin Payment Excl VAT"/>
+                        </div>
+                        <div class="form-group col-md-3 mb-3">
+                            <label for="beginPaymentInclVat" class="font-weight-bold">Begin Payment Incl VAT</label>
+                            <input id="beginPaymentInclVat"
+                                   th:field="*{beginPaymentInclVAT}"
+                                   th:errorclass="is-invalid"
+                                   type="number" step="0.01"
+                                   class="form-control"
+                                   placeholder="Begin Payment Incl VAT"/>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="table-responsive text-light">
@@ -265,6 +330,8 @@
                                 actions</th>
                             <th>Vehicle no</th>
                             <th>Vehicle plate number</th>
+                            <th>Principal Excl Vat</th>
+                            <th>Principal Incl Vat</th>
                         </tr>
                     </thead>
                     <tbody class=" fixedTable">
@@ -281,6 +348,8 @@
                             <td class="td-hide" th:text="${List.getLineNo()}"/>
                             <td th:text="${List.getVehicleNo()}"/>
                             <td th:text="${List.getNumberPlate()}"/>
+                            <td th:text="${List.getPrincipalExclVat()}"/>
+                            <td th:text="${List.getPrincipalInclVat()}"/>
                         </tr>
                     </tbody>
                 </table>
