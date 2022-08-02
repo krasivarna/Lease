@@ -18,8 +18,12 @@
                     <tbody>
                     <tr class="block" th:each="regionList : ${vehicleList}">
                         <td>
-                            <a type="button" class="btn btn-link" th:href="@{/vehiclecard/{code}(code=${regionList.getNo()})}">edit</a>
-                            <a type="button" class="btn btn-link" th:href="@{/deletevehiclecard/{code}(code=${regionList.getNo()})}">delete</a>
+                            <a type="button" class="btn btn-link" th:href="@{/vehiclecard/{code}(code=${regionList.getNo()})}">
+                                <img class="img_action" src="../images/edit.png">
+                            </a>
+                            <a type="button" class="btn btn-link" th:href="@{/deletevehiclecard/{code}(code=${regionList.getNo()})}">
+                                <img class="img_action" src="../images/delete.png">
+                            </a>
                         </td>
                         <td th:text="${regionList.getNo()}"/>
                         <td th:text="${regionList.getNumberPlate()}"/>

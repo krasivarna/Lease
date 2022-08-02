@@ -19,8 +19,12 @@
                     <tbody>
                     <tr class="block" th:each="List : ${ListLease}">
                         <td>
-                            <a type="button" class="btn btn-link" th:href="@{/leasecard/{code}(code=${List.getContractNo()})}">edit</a>
-                            <a type="button" class="btn btn-link" th:href="@{/deleteleasecard/{code}(code=${List.getContractNo()})}">delete</a>
+                            <a type="button" class="btn btn-link" th:href="@{/leasecard/{code}(code=${List.getContractNo()})}">
+                                <img class="img_action"src="../images/edit.png">
+                            </a>
+                            <a type="button" class="btn btn-link" th:href="@{/deleteleasecard/{code}(code=${List.getContractNo()})}">
+                                <img class="img_action" src="../images/delete.png">
+                            </a>
                         </td>
                         <td th:text="${List.getContractNo()}"/>
                         <td th:text="${List.getVendor().getNo()}"/>

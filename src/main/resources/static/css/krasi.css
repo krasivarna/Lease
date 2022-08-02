@@ -142,3 +142,9 @@
     visibility: visible;
     opacity: 0.55;
 }
+.img_action:hover{
+    background: #abdde5;
+}
+.a_lookup:hover{
+    background: #abdde5;
+}

@@ -73,6 +73,7 @@ function CreateLookupCountry(keySearch,main){
             let No = document.createElement('td');
             No.setAttribute('role', 'gridcell');
             let a = document.createElement('a');
+            a.classList.add('a_lookup');
             a.href = '/countrycard/' + item.no;
             a.textContent = item.no;
 
@@ -97,12 +98,14 @@ function CreateLookupCountry(keySearch,main){
     divbutton.appendChild(anew);
     anew.classList.add('btn');
     anew.classList.add('key');
+    anew.classList.add('a_lookup');
     anew.href='/countrycard';
     anew.textContent='new';
     let alist=document.createElement('a');
     divbutton.appendChild(alist);
     alist.classList.add('btn');
     alist.classList.add('key');
+    alist.classList.add('a_lookup');
     alist.href='/countrylist';
     alist.textContent='list';
 
@@ -209,6 +212,7 @@ function CreateLookupVendor(keySearch,main){
             let No = document.createElement('td');
             No.setAttribute('role', 'gridcell');
             let a = document.createElement('a');
+            a.classList.add('a_lookup');
             a.href = '/vendorcard/' + item.no;
             a.textContent = item.no;
 
@@ -243,12 +247,14 @@ function CreateLookupVendor(keySearch,main){
     divbutton.appendChild(anew);
     anew.classList.add('btn');
     anew.classList.add('key');
+    anew.classList.add('a_lookup');
     anew.href='/vendorcard';
     anew.textContent='new';
     let alist=document.createElement('a');
     divbutton.appendChild(alist);
     alist.classList.add('btn');
     alist.classList.add('key');
+    alist.classList.add('a_lookup');
     alist.href='/vendorlist';
     alist.textContent='list';
 
@@ -321,6 +327,7 @@ function CreateLookupVehicle(keySearch,main){
             No.setAttribute('role', 'gridcell');
             let a = document.createElement('a');
             a.href = '/vehiclecard/' + item.no;
+            a.classList.add('a_lookup');
             a.textContent = item.no;
 
             No.appendChild(a);
@@ -354,12 +361,14 @@ function CreateLookupVehicle(keySearch,main){
     divbutton.appendChild(anew);
     anew.classList.add('btn');
     anew.classList.add('key');
+    anew.classList.add('a_lookup');
     anew.href='/vehiclecard';
     anew.textContent='new';
     let alist=document.createElement('a');
     divbutton.appendChild(alist);
     alist.classList.add('btn');
     alist.classList.add('key');
+    alist.classList.add('a_lookup');
     alist.href='/vehiclelist';
     alist.textContent='list';
 

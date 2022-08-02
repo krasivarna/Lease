@@ -324,8 +324,9 @@
                         <tr class="ui-icon-key">
                             <th>
                                 <th:block>
-                                    <a th:href="@{/leasedetailcard/{code}/0(code=${leaseCardDTO.contractNo})}"
-                                    >add</a>
+                                    <a th:href="@{/leasedetailcard/{code}/0(code=${leaseCardDTO.contractNo})}">
+                                        <img class="img_action" src="../images/add.png">
+                                    </a>
                                 </th:block>
                                 actions</th>
                             <th>Vehicle no</th>
@@ -339,10 +340,19 @@
                             <td>
                                 <a type="button" class="btn btn-link"
                                    th:href="@{/leasedetailcard/{code}/{lineno}
-                                        (code=${List.getContractNo()},lineno=${List.getLineNo()})}">edit</a>
+                                        (code=${List.getContractNo()},lineno=${List.getLineNo()})}">
+                                    <img class="img_action" src="../images/edit.png">
+                                </a>
                                 <a type="button" class="btn btn-link"
                                    th:href="@{/deleteleasedetailcard/{code}/{lineno}
-                                        (code=${List.getContractNo()},lineno=${List.getLineNo()})}">delete</a>
+                                        (code=${List.getContractNo()},lineno=${List.getLineNo()})}">
+                                    <img class="img_action" src="../images/delete.png">
+                                </a>
+                                <a type="button" class="btn btn-link"
+                                   th:href="@{/payofflist/{code}/{lineno}
+                                        (code=${List.getContractNo()},lineno=${List.getLineNo()})}">
+                                    <img class="img_action" src="../images/payoff.png">
+                                </a>
                             </td>
                             <td class="td-hide" th:text="${List.getContractNo()}"/>
                             <td class="td-hide" th:text="${List.getLineNo()}"/>
