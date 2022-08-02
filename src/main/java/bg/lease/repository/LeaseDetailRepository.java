@@ -1,7 +1,7 @@
 package bg.lease.repository;
 
 import bg.lease.model.LeaseDetailEntity;
-import bg.lease.model.dto.LeaseDetailId;
+import bg.lease.model.LeaseDetailId;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

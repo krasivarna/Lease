@@ -113,3 +113,32 @@
 .modalCard{
     top:100px;
 }
+.content_img{
+    position: relative;
+    width: 130px;
+    height: 65px;
+    float: bottom;
+    margin-bottom: 10px;
+}
+.content_img div{
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background: black;
+    color: white;
+    margin-bottom: 5px;
+    font-family: sans-serif;
+    opacity: 0;
+    visibility: hidden;
+    -webkit-transition: visibility 0s, opacity 0.5s linear;
+    transition: visibility 0s, opacity 0.5s linear;
+}
+.content_img:hover{
+    cursor: pointer;
+}
+.content_img:hover div{
+    width: 100px;
+    padding: 8px 15px;
+    visibility: visible;
+    opacity: 0.55;
+}

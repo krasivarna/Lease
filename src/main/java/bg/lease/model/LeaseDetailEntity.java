@@ -1,7 +1,5 @@
 package bg.lease.model;
 
-import bg.lease.model.dto.LeaseDetailId;
-
 import javax.persistence.*;
 import javax.validation.constraints.Size;
 import java.math.BigDecimal;

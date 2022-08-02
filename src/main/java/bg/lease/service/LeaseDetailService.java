@@ -1,9 +1,7 @@
 package bg.lease.service;
 
 import bg.lease.model.LeaseDetailEntity;
-import bg.lease.model.LeaseHeaderEntity;
 import bg.lease.model.VehicleEntity;
-import bg.lease.model.VendorEntity;
 import bg.lease.model.dto.LeaseDetailDTO;
 import bg.lease.repository.LeaseDetailRepository;
 import bg.lease.repository.VehicleRepository;
@@ -92,5 +90,14 @@ public class LeaseDetailService {
     @Transactional
     public void deleteCard(String contractNo, int lineNo) {
         leaseDetailRepository.deleteByContractNoAndLineNo(contractNo,lineNo);
+    }
+
+    public LeaseDetailEntity getLeaseDetail(String contractNo,int lineNo){
+        Optional<LeaseDetailEntity> byNo=this.leaseDetailRepository.findByContractNoAndLineNo(contractNo,lineNo);
+        if (byNo.isPresent()){
+            return byNo.get();
+        } else {
+            throw new RuntimeException("missing detail entity");
+        }
     }
 }

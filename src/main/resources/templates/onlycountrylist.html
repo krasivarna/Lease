@@ -17,8 +17,14 @@
                     <tbody>
                         <tr class="block" th:each="regionList : ${countryList}">
                             <td>
-                                <a type="button" class="btn btn-link" th:href="@{/countrycard/{code}(code=${regionList.getNo()})}">edit</a>
-                                <a type="button" class="btn btn-link" th:href="@{/deletecountrycard/{code}(code=${regionList.getNo()})}">delete</a>
+                                <a type="button" class="btn btn-link"
+                                   th:href="@{/countrycard/{code}(code=${regionList.getNo()})}">
+                                    <img src="../images/edit.png">
+                                </a>
+                                <a type="button" class="btn btn-link"
+                                   th:href="@{/deletecountrycard/{code}(code=${regionList.getNo()})}">
+                                    <img src="../images/delete.png">
+                                </a>
                             </td>
                             <td th:text="${regionList.getNo()}"/>
                             <td th:text="${regionList.getName()}"/>

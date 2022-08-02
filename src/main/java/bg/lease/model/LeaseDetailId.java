@@ -1,4 +1,4 @@
-package bg.lease.model.dto;
+package bg.lease.model;
 
 import java.io.Serializable;
 

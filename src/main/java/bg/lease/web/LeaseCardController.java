@@ -5,6 +5,7 @@ import bg.lease.model.dto.LeaseDetailDTO;
 import bg.lease.model.exceptions.WrongLeaseStatusException;
 import bg.lease.service.LeaseDetailService;
 import bg.lease.service.LeaseService;
+import bg.lease.service.PayOffGenerateService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -20,17 +21,32 @@ public class LeaseCardController {
 
     private LeaseService leaseService;
     private LeaseDetailService leaseDetailService;
+    private PayOffGenerateService payOffGenerateService;
 
     public LeaseCardController(LeaseService leaseService,
-                               LeaseDetailService leaseDetailService){
+                               LeaseDetailService leaseDetailService,
+                               PayOffGenerateService payOffGenerateService){
         this.leaseService=leaseService;
         this.leaseDetailService = leaseDetailService;
+        this.payOffGenerateService = payOffGenerateService;
     }
 
     @GetMapping("/leasecard")
     public String leaseCard(Model model) {
         model.addAttribute("leaseDetails",new LeaseDetailDTO());
         model.addAttribute("leaseCardDTO",new LeaseCardDTO());
+        model.addAttribute("showList",false);
+        model.addAttribute("showCard",true);
+        model.addAttribute("showDetailCard",false);
+        return "leaselist";
+    }
+
+    @GetMapping("/leasecard/{code}/generate")
+    public String generatePayoffplan(Model model, @PathVariable("code") String contractNo){
+        payOffGenerateService.generatePayoffPlan(contractNo);
+        LeaseCardDTO contract=this.leaseService.editCard(contractNo);
+        model.addAttribute("leaseCardDTO",contract);
+        model.addAttribute("leaseDetails",this.leaseDetailService.leaseDetail(contractNo));
         model.addAttribute("showList",false);
         model.addAttribute("showCard",true);
         model.addAttribute("showDetailCard",false);

@@ -100,4 +100,6 @@ public class LeaseService {
         Optional<LeaseHeaderEntity> optNo=leaseRepository.findByContractNoAndLeaseStatus(contractNo, LeaseStatus.Empty);
         return (optNo.isPresent());
     }
+
+
 }
