@@ -19,7 +19,8 @@ public class PayoffListController {
     public String payOffList(Model model,
                              @PathVariable("code") String contractNo,
                              @PathVariable("lineno") int lineNo){
-        model.addAttribute("payList",this.payoffService.payoffList(contractNo, lineNo));
+        model.addAttribute("ListPay",this.payoffService.payoffList(contractNo, lineNo));
+        model.addAttribute("contractNo",contractNo);
         model.addAttribute("showPay",true);
         return "payofflist";
     }

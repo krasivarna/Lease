@@ -8,6 +8,7 @@ import bg.lease.repository.VehicleRepository;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -99,5 +100,13 @@ public class LeaseDetailService {
         } else {
             throw new RuntimeException("missing detail entity");
         }
+    }
+
+    public BigDecimal totalInclAmount(String contractNo){
+        return leaseDetailRepository.caclulateTotalAmountInclVAT(contractNo);
+    }
+
+    public BigDecimal totalExclAmount(String contractNo){
+        return leaseDetailRepository.calculateTotalAmountExclVAT(contractNo);
     }
 }

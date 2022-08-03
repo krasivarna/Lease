@@ -5,11 +5,10 @@
                 th:action="@{/payofflist}"
                 th:method="post"
                 class="text-white main-form">
-            <div class="table-responsive">
+            <div class="table-responsive tableLarge">
                 <table class="table table-striped table-bordered">
                     <thead>
                     <tr class="ui-icon-key">
-                        <th>actions</th>
                         <th>Month</th>
                         <th>Due Date</th>
                         <th>Principal</th>
@@ -18,13 +17,10 @@
                     </thead>
                     <tbody>
                     <tr class="block" th:each="List : ${ListPay}">
-                        <td>
-
-                        </td>
                         <td th:text="${List.getMonth()}"/>
                         <td th:text="${List.getDueDate()}"/>
-                        <td th:text="${List.getPrincipalExclVat()}"/>
-                        <td th:text="${List.getInterestExclVat()}"/>
+                        <td th:text="${List.getPrincipalExclVAT()}"/>
+                        <td th:text="${List.getInterestExclVAT()}"/>
                     </tr>
                     </tbody>
                 </table>
@@ -33,7 +29,7 @@
                 error
             </small>
             <div class="modal-footer">
-                <a id="cancellist" class="key btn btn-secondary" th:href="@{/leasecard/{code}(code=${List.getContractNo()})}">Close</a>
+                <a id="cancellist" class="key btn btn-secondary" th:href="@{/leasecard/{code}(code=${contractNo})}">Close</a>
             </div>
         </form>
     </div>

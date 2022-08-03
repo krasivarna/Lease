@@ -148,3 +148,11 @@
 .a_lookup:hover{
     background: #abdde5;
 }
+.tableLarge{
+    height: 700px;
+}
+
+.tableLarge tbody{
+    height:600px;
+    overflow:auto;
+}
