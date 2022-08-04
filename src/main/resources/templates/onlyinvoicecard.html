@@ -1,0 +1,89 @@
+<th:block>
+    <div id="invoicecard" class="container" th:unless="${hideCard}">
+        <h2 class="text-center text-dark">Invoice Card</h2>
+        <form
+                th:action="@{/invoicecard}"
+                th:method="post"
+                th:object="${invoiceDTO}"
+                class="text-white main-form mx-auto col-md-8 d-flex flex-column justify-content-center">
+            <div class="row">
+                <div class="form-group col-md-6 mb-3">
+                    <label for="documentType" class="font-weight-bold">Document Type</label>
+                    <select id="documentType"
+                            th:field="*{documentType}"
+                            th:errorclass="is-invalid"
+                            type="text"
+                            class="form-control">
+                        <option value="">- Select document type -</option>
+                        <option th:each="docType : ${T(bg.lease.model.enums.DocumentType).values()}"
+                                th:value="${docType}" th:text="${docType}" th:selected="${docType}==*{documentType}"></option>
+                    </select>
+                </div>
+                <div class="form-group col-md-6 mb-3">
+                    <label for="no" class="font-weight-bold">Document No.</label>
+                    <input id="no"
+                           th:field="*{documentNo}"
+                           th:errorclass="is-invalid"
+                           type="text"
+                           class="form-control"
+                           placeholder="Document No."/>
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-group col-md-6 mb-3">
+                    <label for="exclVAT" class="font-weight-bold">Amount Excl VAT</label>
+                    <input id="exclVAT"
+                           th:field="*{amountExclVAT}"
+                           th:errorclass="is-invalid"
+                           type="number" step="0.01"
+                           class="form-control"
+                           placeholder="Amount Excl VAT"/>
+                </div>
+                <div class="form-group col-md-6 mb-3">
+                    <label for="inclVAT" class="font-weight-bold">Amount Incl VAT</label>
+                    <input id="inclVAT"
+                           th:field="*{amountInclVAT}"
+                           th:errorclass="is-invalid"
+                           type="number" step="0.01"
+                           class="form-control"
+                           placeholder="Amount Incl VAT"/>
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-group col-md-6 mb-3">
+                    <label for="entryType" class="font-weight-bold">Entry Type</label>
+                    <select id="entryType"
+                            th:field="*{type}"
+                            th:errorclass="is-invalid"
+                            type="text"
+                            class="form-control">
+                        <option value="">- Select entry type -</option>
+                        <option th:each="applyType : ${T(bg.lease.model.enums.LeaseApplyType).values()}"
+                                th:value="${applyType}" th:text="${applyType}" th:selected="${applyType}==*{type}"></option>
+                    </select>
+                </div>
+                <div class="form-group col-md-6 mb-3">
+                    <label for="payEntry" class="font-weight-bold">to PayPlan</label>
+                    <div class="input-group">
+                        <div class="input-group-text arrow icon-down" onclick="CreateLookupPayplan(document.getElementById('payEntry').value,
+                                                                                               document.getElementById('invoicecard'))" id="btn2"></div>
+                        <input id="payEntry"
+                               th:field="*{payplanEntry}"
+                               th:errorclass="is-invalid"
+                               type="number"
+                               class="form-control"
+                               placeholder="to PayPlan"
+                               oninput="SearchPay(document.getElementById('payEntry').value,
+                                             document.getElementById('invoicecard'))"
+                               onblur="HideLookup()"
+                        />
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="savecard" class="btn btn-primary" type="submit">Save</button>
+                <a id="cancelcard" class="btn btn btn-secondary" type="button" th:href="@{/invoicelist}">Cancel</a>
+            </div>
+        </form>
+    </div>
+</th:block>

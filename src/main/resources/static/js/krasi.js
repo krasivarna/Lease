@@ -5,6 +5,13 @@ function GetVendorId() {
     No.value=currentNo;
     HideLookup();
 }
+function GetPayoffId(){
+    let currentRow=$(this).closest('tr');
+    let currentNo=currentRow.find('td:eq(0)').find('a').text();
+    let No=document.getElementById('payEntry');
+    No.value=currentNo;
+    HideLookup();
+}
 function SearchVendor(inp,main){
    if (inp.length>=2){
        CreateLookupVendor(inp,main);
@@ -378,6 +385,106 @@ function SearchVehicle(inp,main){
     if (inp.length>=2){
         CreateLookupVehicle(inp,main);
     }
+}
+function SearchPay(inp,main){
+    if (inp.length>=2){
+        CreateLookupPayplan(inp,main)
+    }
+}
+function CreateLookupPayplan(keySearch,main){
+    let temp=document.getElementById('lookup');
+    if (temp!=null){
+        temp.remove();
+    }
+
+    let basicDiv=document.createElement('div');
+
+    main.appendChild(basicDiv);
+
+    basicDiv.setAttribute('id','lookup');
+    basicDiv.classList.add('dropdown-content');
+
+    let form=document.createElement('form');
+
+    basicDiv.appendChild(form);
+
+    form.classList.add('order');
+    form.classList.add('fixedTable');
+    form.method='post';
+
+    let table=document.createElement('table');
+    table.setAttribute('role','grid');
+    table.classList.add('fixedTable');
+
+    form.appendChild(table);
+
+    let thead=document.createElement('thead');
+    thead.classList.add('listDownHeader');
+    table.appendChild(thead);
+
+    let rowHead=document.createElement('tr');
+    let NoCaption=document.createElement('th');
+    NoCaption.textContent='Entry no.';
+    let contractCaption=document.createElement('th');
+    contractCaption.textContent='Contract no';
+    let monthCaption=document.createElement('th');
+    monthCaption.textContent='Month';
+    rowHead.appendChild(NoCaption);
+    rowHead.appendChild(contractCaption);
+    rowHead.appendChild(monthCaption);
+
+    thead.appendChild(rowHead);
+
+    let tbody=document.createElement('tbody');
+    tbody.setAttribute('role','rowgroup');
+    tbody.classList.add('listDown');
+    table.appendChild(tbody);
+
+    var requestOptions={method:'GET',redirect:'follow'};
+
+    let restLink='';
+    if (keySearch===""){
+        restLink='http://localhost:8080/payoffsmalllist';
+    } else {
+        restLink ='http://localhost:8080/payoffsmalllist?key='+keySearch;
+    }
+    fetch(restLink,requestOptions)
+        .then(response=>response.json())
+        .then(json=>json.forEach(item => {
+
+            let row = document.createElement('tr');
+            row.setAttribute('role', 'row');
+            let No = document.createElement('td');
+            No.setAttribute('role', 'gridcell');
+            let a = document.createElement('a');
+            a.classList.add('a_lookup');
+            a.textContent = item.entryNo;
+
+            No.appendChild(a);
+            row.appendChild(No);
+
+            let contract = document.createElement('td');
+            contract.setAttribute('role', 'gridcell');
+            let span = document.createElement('span');
+            span.textContent = item.contractNo;
+            span.ondblclick=GetPayoffId;
+
+            contract.appendChild(span);
+            row.appendChild(contract);
+
+            let month = document.createElement('td');
+            month.setAttribute('role', 'gridcell');
+            let spanMonth = document.createElement('span');
+            spanMonth.textContent = item.month;
+            spanMonth.ondblclick=GetPayoffId;
+
+            month.appendChild(spanMonth);
+            row.appendChild(month);
+
+            tbody.appendChild(row);
+        }));
+
+    ShowLookup(event);
 }
 
 

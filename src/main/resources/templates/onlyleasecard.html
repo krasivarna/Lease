@@ -366,7 +366,9 @@
             </div>
             <div class="modal-footer">
                 <a id="generateentries" class="btn btn-success" type="button"
-                   th:href="@{/leasecard/{code}/generate(code=${leaseCardDTO.contractNo})}">Generate</a>
+                   th:href="@{/leasecard/{code}/generateplan(code=${leaseCardDTO.contractNo})}">Generate plan</a>
+                <a id="deleteentries" class="btn btn-toolbar" type="button"
+                   th:href="@{/leasecard/{code}/deleteplan(code=${leaseCardDTO.contractNo})}">Delete plan</a>
                 <button id="savecard" class="btn btn-primary" type="submit">Save</button>
                 <a id="cancelcard" class="btn btn-secondary" type="button" th:href="@{/leasinglist}">Cancel</a>
             </div>

@@ -1,6 +1,7 @@
 package bg.lease.service;
 
 import bg.lease.model.PayoffPlan;
+import bg.lease.model.dto.PaySmallDTO;
 import bg.lease.model.dto.PayoffListDTO;
 import bg.lease.repository.PayOffRepository;
 import org.springframework.stereotype.Service;
@@ -31,6 +32,26 @@ public class PayoffService {
         result.setMonth(payplan.getMonth());
         result.setPrincipalExclVAT(payplan.getPrincipalExclVAT());
         result.setInterestExclVAT(payplan.getInterestExclVAT());
+
+        return result;
+    }
+
+    public List<PaySmallDTO> smallListPay(String searchKey){
+        if (searchKey.equals("")){
+            return this.payOffRepository.findAll().stream().
+                    map(this::mapSmall).collect(Collectors.toList());
+        } else {
+            return this.payOffRepository.findByLeaseDetail_ContractNoOrderByLeaseDetail_ContractNoAscMonthAsc(searchKey).stream().
+                    map(this::mapSmall).collect(Collectors.toList());
+        }
+    }
+
+    private PaySmallDTO mapSmall(PayoffPlan entity) {
+        PaySmallDTO result = new PaySmallDTO();
+        result.setEntryNo(entity.getEntryNo());
+        result.setMonth(entity.getMonth());
+        result.setContractNo(entity.getLeaseDetail().getContractNo());
+        result.setLineNo(entity.getLeaseDetail().getLineNo());
 
         return result;
     }

@@ -35,21 +35,22 @@ public class LeaseCardController {
     public String leaseCard(Model model) {
         model.addAttribute("leaseDetails",new LeaseDetailDTO());
         model.addAttribute("leaseCardDTO",new LeaseCardDTO());
-        model.addAttribute("showList",false);
-        model.addAttribute("showCard",true);
-        model.addAttribute("showDetailCard",false);
+        setModelAttribute(model, false, true, false);
         return "leaselist";
     }
 
-    @GetMapping("/leasecard/{code}/generate")
+    @GetMapping("/leasecard/{code}/generateplan")
     public String generatePayoffplan(Model model, @PathVariable("code") String contractNo){
         payOffGenerateService.generatePayoffPlan(contractNo);
-        LeaseCardDTO contract=this.leaseService.editCard(contractNo);
-        model.addAttribute("leaseCardDTO",contract);
-        model.addAttribute("leaseDetails",this.leaseDetailService.leaseDetail(contractNo));
-        model.addAttribute("showList",false);
-        model.addAttribute("showCard",true);
-        model.addAttribute("showDetailCard",false);
+        refreshLeaseCard(contractNo, model);
+        return "leaselist";
+    }
+
+    @GetMapping("/leasecard/{code}/deleteplan")
+    public String deletePayoffplan(Model model,@PathVariable("code") String contractNo)
+    {
+        payOffGenerateService.deletePayoffPlan(contractNo);
+        refreshLeaseCard(contractNo, model);
         return "leaselist";
     }
 
@@ -80,12 +81,7 @@ public class LeaseCardController {
 
     @GetMapping("/leasecard/{code}")
     public String editLeaseCard(Model model, @PathVariable("code") String contractNo){
-        LeaseCardDTO contract=this.leaseService.editCard(contractNo);
-        model.addAttribute("leaseCardDTO",contract);
-        model.addAttribute("leaseDetails",this.leaseDetailService.leaseDetail(contractNo));
-        model.addAttribute("showList",false);
-        model.addAttribute("showCard",true);
-        model.addAttribute("showDetailCard",false);
+        refreshLeaseCard(contractNo, model);
         return "leaselist";
     }
 
@@ -97,10 +93,26 @@ public class LeaseCardController {
         } catch (WrongLeaseStatusException e) {
             model.addAttribute("hasError",true);
             model.addAttribute("deleteError",e.getMessage());
-            model.addAttribute("showList",true);
-            model.addAttribute("showCard",false);
-            model.addAttribute("showDetailCard",false);
+            setModelAttribute(model, true, false, false);
         }
         return "leaselist";
     }
+
+    private void setModelAttribute(Model model, boolean showList, boolean showCard, boolean showDetail) {
+        model.addAttribute("showList", showList);
+        model.addAttribute("showCard", showCard);
+        model.addAttribute("showDetailCard", showDetail);
+    }
+
+    private void setLeaseDTOs(Model model, LeaseCardDTO contract, String contractNo) {
+        model.addAttribute("leaseCardDTO", contract);
+        model.addAttribute("leaseDetails",this.leaseDetailService.leaseDetail(contractNo));
+    }
+
+    private void refreshLeaseCard(String contractNo, Model model) {
+        LeaseCardDTO contract=this.leaseService.editCard(contractNo);
+        setLeaseDTOs(model, contract, contractNo);
+        setModelAttribute(model, false, true, false);
+    }
+
 }

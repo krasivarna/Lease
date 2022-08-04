@@ -1,0 +1,47 @@
+<th:block>
+    <div id="invoicelist" class="container" th:if="${hideCard}">
+        <h2 class="text-center text-dark">Invoice list</h2>
+        <form
+                th:action="@{/invoicelist}"
+                th:method="post"
+                class="main-form text-white">
+            <div class="table-responsive">
+                <table class="table table-striped table-bordered">
+                    <thead>
+                    <tr class="ui-icon-key">
+                        <th>actions</th>
+                        <th>Document type</th>
+                        <th>Document No.</th>
+                        <th>Type entry</th>
+                        <th>Amount Excl VAT</th>
+                        <th>Amount Incl VAT</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr class="block" th:each="invoice : ${invoiceList}">
+                        <td>
+                            <a type="button" class="btn btn-link"
+                               th:href="@{/invoicecard/{id}(id=${invoice.getEntryNo()})}">
+                                <img class="img_action" src="../images/edit.png">
+                            </a>
+                            <a type="button" class="btn btn-link"
+                               th:href="@{/deleteinvoicecard/{id}(id=${invoice.getEntryNo()})}">
+                                <img class="img_action" src="../images/delete.png">
+                            </a>
+                        </td>
+                        <td th:text="${invoice.getDocumentType()}"/>
+                        <td th:text="${invoice.getDocumentNo()}"/>
+                        <td th:text="${invoice.getType()}"/>
+                        <td th:text="${invoice.getAmountExclVAT()}"/>
+                        <td th:text="${invoice.getAmountInclVAT()}"/>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <a id="newcard" class="key btn btn-lg" th:href="@{/invoicecard}">New</a>
+                <a id="card" class="btn btn btn-secondary" th:href="@{/}">Close</a>
+            </div>
+        </form>
+    </div>
+</th:block>

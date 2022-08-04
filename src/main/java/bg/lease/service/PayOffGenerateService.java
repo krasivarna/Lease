@@ -8,6 +8,7 @@ import bg.lease.repository.LeaseRepository;
 import bg.lease.repository.PayOffRepository;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
@@ -167,10 +168,33 @@ public class PayOffGenerateService {
 
         return true;
     }
+
     private boolean calcDetailPrincipal(LeaseHeaderEntity leaseHeader){
         if (!checkLeaseRules(leaseHeader)) {
             return false;
         }
+        List<LeaseDetailDTO> details=leaseDetailService.leaseDetail(leaseHeader.getContractNo());
+        for (LeaseDetailDTO detail:details){
+            calcPayOffPlan(detail,leaseHeader,0,false,false);
+        }
+        return true;
+    }
+
+    private int calcPayOffPlan(LeaseDetailDTO detail,LeaseHeaderEntity header,int type,boolean calculate,boolean reoffer){
+
+        return 0;
+    }
+
+    @Transactional
+    public boolean deletePayoffPlan(String contractNo) {
+        if (payOffRepository.existsByLeaseDetail_ContractNoAndInvoicedPrincipalAndCancel(contractNo,true,false)){
+            throw new RuntimeException("Some payments are invoiced. The Action is canceled.");
+        }
+        if (payOffRepository.existsByLeaseDetail_ContractNoAndInvoicedInterestAndCancel(contractNo,true,false)){
+            throw new RuntimeException("Some payments are invoiced. The Action is canceled.");
+        }
+        //recapply test
+        payOffRepository.deleteByLeaseDetail_ContractNo(contractNo);
         return true;
     }
 }
