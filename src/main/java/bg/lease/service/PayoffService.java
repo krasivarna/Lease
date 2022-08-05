@@ -41,7 +41,7 @@ public class PayoffService {
             return this.payOffRepository.findAll().stream().
                     map(this::mapSmall).collect(Collectors.toList());
         } else {
-            return this.payOffRepository.findByLeaseDetail_ContractNoOrderByLeaseDetail_ContractNoAscMonthAsc(searchKey).stream().
+            return this.payOffRepository.findByLeaseDetail_ContractNo(searchKey).stream().
                     map(this::mapSmall).collect(Collectors.toList());
         }
     }

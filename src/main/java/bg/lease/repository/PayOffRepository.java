@@ -6,6 +6,7 @@ import bg.lease.model.enums.PayOffEntryType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -26,9 +27,24 @@ public interface PayOffRepository extends JpaRepository<PayoffPlan,Long> {
 
     void deleteByLeaseDetail_ContractNo(String contractNo);
 
-    List<PayoffPlan> findByLeaseDetail_ContractNoOrderByLeaseDetail_ContractNoAscMonthAsc(String searchKey);
+    List<PayoffPlan> findByLeaseDetail_ContractNo(String searchKey);
 
     List<PayoffPlan> findAll();
 
     Optional<PayoffPlan> findByEntryNo(Long entryNo);
+
+    Optional<PayoffPlan> findFirstByLeaseDetail_ContractNoAndLeaseDetail_LineNoAndCancelAndAmountTypeAndDueDateLessThanOrderByDueDateDesc(
+            String contractNo, int lineNo, boolean cancel, PayOffAmountType amountType, LocalDate dueDate);
+
+    Optional<PayoffPlan> findFirstByLeaseDetail_ContractNoAndLeaseDetail_LineNoAndCancelAndAmountTypeAndMonthGreaterThanEqualAndInvoicedInterestOrderByMonthDesc(
+            String contractNo, int lineNo, boolean cancel, PayOffAmountType amountType,int month,boolean invoicedInterest);
+
+    Optional<PayoffPlan> findFirstByLeaseDetail_ContractNoAndLeaseDetail_LineNoAndCancelAndAmountTypeAndMonthGreaterThanEqualAndEntryTypeOrderByMonthDesc(
+            String contractNo, int lineNo, boolean cancel, PayOffAmountType amountType,int month,PayOffEntryType entryType);
+
+    Optional<PayoffPlan> findFirstByLeaseDetail_ContractNoAndLeaseDetail_LineNoAndCancelAndAmountTypeAndMonthGreaterThanEqualOrderByMonthDesc(
+            String contractNo, int lineNo, boolean cancel, PayOffAmountType amountType,int month);
+
+    List<PayoffPlan> findByLeaseDetail_ContractNoAndLeaseDetail_LineNoAndCancelAndAmountTypeAndMonthGreaterThanEqual(
+            String contractNo, int lineNo, boolean cancel, PayOffAmountType amountType,int month);
 }
