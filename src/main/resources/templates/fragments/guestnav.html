@@ -1,9 +1,9 @@
-<nav class="main-nav">
+<nav class="main-nav navbar fixed-top">
     <ul>
         <li>
             <div class="content_img">
                 <a th:href="@{/}">
-                    <img src="../images/home.png" width="130" height="65">
+                    <img src="/images/home.png" width="130" height="65">
                 </a>
                 <div>home</div>
             </div>
@@ -11,7 +11,7 @@
         <li>
             <div class="content_img">
                 <a th:href="@{/countrylist}">
-                    <img src="../images/countries.png" width="130" height="65">
+                    <img src="/images/countries.png" width="130" height="65">
                 </a>
                 <div>countries</div>
             </div>
@@ -19,7 +19,7 @@
         <li>
             <div class="content_img">
                 <a th:href="@{/vehiclelist}">
-                    <img src="../images/vehicles.png" width="130" height="65">
+                    <img src="/images/vehicles.png" width="130" height="65">
                 </a>
                 <div>vehicles</div>
             </div>
@@ -27,7 +27,7 @@
         <li>
             <div class="content_img">
                 <a th:href="@{/vendorlist}">
-                    <img src="../images/vendors.png" width="130" height="65">
+                    <img src="/images/vendors.png" width="130" height="65">
                 </a>
                 <div>vendors</div>
             </div>
@@ -35,7 +35,7 @@
         <li>
             <div class="content_img">
                 <a th:href="@{/leasinglist}">
-                    <img src="../images/leasing.png" width="130" height="65">
+                    <img src="/images/leasing.png" width="130" height="65">
                 </a>
                 <div>leasings</div>
             </div>
@@ -43,7 +43,7 @@
         <li>
             <div class="content_img">
                 <a th:href="@{/invoicelist}">
-                    <img src="../images/invoice.png" width="130" height="65">
+                    <img src="/images/invoice.png" width="130" height="65">
                 </a>
                 <div>invoices</div>
             </div>
@@ -51,7 +51,7 @@
         <li>
             <div class="content_img">
                 <a th:href="@{/paymentlist}">
-                    <img src="../images/payments.png" width="130" height="65">
+                    <img src="/images/payments.png" width="130" height="65">
                 </a>
                 <div>payments</div>
             </div>
@@ -59,7 +59,7 @@
         <li>
             <div class="content_img">
                 <a th:href="@{/users/register}">
-                    <img src="../images/register.png" width="130" height="65">
+                    <img src="/images/register.png" width="130" height="65">
                 </a>
                 <div>register</div>
             </div>
@@ -67,7 +67,7 @@
         <li>
             <div class="content_img">
                 <a th:href="@{/users/login}">
-                    <img src="../images/login.png" width="130" height="65">
+                    <img src="/images/login.png" width="130" height="65">
                 </a>
                 <div>login</div>
             </div>
@@ -75,7 +75,7 @@
         </li>
             <form th:action="@{/users/logout}" th:method="post">
                 <div class="content_img">
-                    <input class="btn btn-link nav-link" type="image" src="../images/logout.png" alt="Submit" value="Logout">
+                    <input class="btn btn-link nav-link" type="image" src="/images/logout.png" alt="Submit" value="Logout">
                     <div>logout</div>
                 </div>
             </form>

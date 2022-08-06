@@ -32,6 +32,12 @@ public class PayoffService {
         result.setMonth(payplan.getMonth());
         result.setPrincipalExclVAT(payplan.getPrincipalExclVAT());
         result.setInterestExclVAT(payplan.getInterestExclVAT());
+        result.setRemainingPrincipalExclVAT(payplan.getRemainingPrincipalExclVAT());
+        result.setRemainingPrincipalInclVAT(payplan.getRemainingPrincipalInclVAT());
+        result.setInvoicedPrincipal(payplan.isInvoicedPrincipal());
+        result.setPayedPrincipal(payplan.isPayedPrincipal());
+        result.setInvoicedInterest(payplan.isInvoicedInterest());
+        result.setPayedInterest(payplan.isPayedInterest());
 
         return result;
     }

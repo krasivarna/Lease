@@ -36,4 +36,9 @@ public class CountryEntity {
     public void setName(String name) {
         this.name = name;
     }
+
+    public CountryEntity(String no,String name){
+        this.no=no;
+        this.name=name;
+    }
 }

@@ -22,11 +22,11 @@
                         <td>
                             <a type="button" class="btn btn-link"
                                th:href="@{/invoicecard/{id}(id=${invoice.getEntryNo()})}">
-                                <img class="img_action" src="../images/edit.png">
+                                <img class="img_action" src="/images/edit.png">
                             </a>
                             <a type="button" class="btn btn-link"
                                th:href="@{/deleteinvoicecard/{id}(id=${invoice.getEntryNo()})}">
-                                <img class="img_action" src="../images/delete.png">
+                                <img class="img_action" src="/images/delete.png">
                             </a>
                         </td>
                         <td th:text="${invoice.getDocumentType()}"/>

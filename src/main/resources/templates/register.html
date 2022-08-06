@@ -1,18 +1,13 @@
 <!DOCTYPE html>
 <html lang="en"
       xmlns:th="http://www.thymeleaf.org">
-<head>
-      <meta charset="UTF-8">
-    <title>Lease calculator</title>
-    <link rel="stylesheet" href="/css/reset-css.css"/>
-    <link rel="stylesheet" href="/css/bootstrap.min.css"/>
-    <link rel="stylesheet" type="text/css" href="/css/main.css"/>
-    <script src="/js/jquery-3.5.1.slim.min.js"></script>
-    <script src="/js/bootstrap.min.js"></script>
-</head>
+    <head>
+        <title>Lease calculator</title>
+        <th:block th:replace="~{/fragments/head}"></th:block>
+    </head>
 
-<body>
-<div class="container">
+    <body>
+        <div class="container">
     <h2 class="text-center text-white">Register User</h2>
     <form
           th:action="@{/users/register}"
@@ -69,9 +64,9 @@
     </form>
 </div>
 
-<div>
-     <footer> </footer>
-</div>
+        <div>
+            <footer> </footer>
+        </div>
 
-</body>
+    </body>
 </html>

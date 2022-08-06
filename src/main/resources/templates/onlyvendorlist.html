@@ -22,10 +22,10 @@
                     <tr class="block" th:each="vendList : ${vendorList}">
                         <td>
                             <a type="button" class="btn btn-link" th:href="@{/vendorcard/{code}(code=${vendList.getNo()})}">
-                                <img class="img_action" src="../images/edit.png">
+                                <img class="img_action" src="/images/edit.png">
                             </a>
                             <a type="button" class="btn btn-link" th:href="@{/deletevendorcard/{code}(code=${vendList.getNo()})}">
-                                <img class="img_action" src="../images/delete.png">
+                                <img class="img_action" src="/images/delete.png">
                             </a>
                         </td>
                         <td th:text="${vendList.getNo()}"/>

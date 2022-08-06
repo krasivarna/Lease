@@ -22,6 +22,7 @@ public class PayoffListController {
         model.addAttribute("ListPay",this.payoffService.payoffList(contractNo, lineNo));
         model.addAttribute("contractNo",contractNo);
         model.addAttribute("showPay",true);
+        model.addAttribute("readonly",true);
         return "payofflist";
     }
 }

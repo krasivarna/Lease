@@ -6,6 +6,7 @@ import bg.lease.model.enums.PayOffEntryType;
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @Table(name="payoffplan")
@@ -74,6 +75,9 @@ public class PayoffPlan {
 
     @ManyToOne
     private LeaseDetailEntity leaseDetail;
+
+    @OneToMany
+    private List<LeaseApplyEntity> applyList;
 
     public PayoffPlan() {
     }

@@ -26,6 +26,14 @@ public class VehicleEntity {
     public VehicleEntity() {
     }
 
+    public VehicleEntity(String no,
+                         String numberPlate,
+                         String vehicleModel){
+        this.no=no;
+        this.numberPlate=numberPlate;
+        this.vehicleModel=vehicleModel;
+    }
+
     public String getNo() {
         return no;
     }

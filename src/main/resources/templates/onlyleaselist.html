@@ -20,10 +20,10 @@
                     <tr class="block" th:each="List : ${ListLease}">
                         <td>
                             <a type="button" class="btn btn-link" th:href="@{/leasecard/{code}(code=${List.getContractNo()})}">
-                                <img class="img_action"src="../images/edit.png">
+                                <img class="img_action"src="/images/edit.png">
                             </a>
                             <a type="button" class="btn btn-link" th:href="@{/deleteleasecard/{code}(code=${List.getContractNo()})}">
-                                <img class="img_action" src="../images/delete.png">
+                                <img class="img_action" src="/images/delete.png">
                             </a>
                         </td>
                         <td th:text="${List.getContractNo()}"/>

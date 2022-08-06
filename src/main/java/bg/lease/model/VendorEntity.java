@@ -77,4 +77,16 @@ public class VendorEntity {
     public void setCountryNo(CountryEntity countryNo) {
         this.countryNo = countryNo;
     }
+
+    public VendorEntity() {
+    }
+
+    public VendorEntity(String no, String name, String vatRegistration, String address, CountryEntity countryNo, String city) {
+        this.no = no;
+        this.name = name;
+        this.vatRegistration = vatRegistration;
+        this.address = address;
+        this.countryNo = countryNo;
+        this.city = city;
+    }
 }
