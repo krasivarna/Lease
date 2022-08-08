@@ -6,6 +6,11 @@
                 th:method="post"
                 th:object="${invoiceDTO}"
                 class="text-white main-form mx-auto col-md-8 d-flex flex-column justify-content-center">
+            <div th:if="${hasError}" class="errors alert alert-danger">
+                <p>Has errors:</p>
+                <div th:each="err: ${listErrors}"
+                     th:text="${err}"/>
+            </div>
             <div class="row">
                 <div class="form-group col-md-6 mb-3">
                     <label for="documentType" class="font-weight-bold">Document Type</label>

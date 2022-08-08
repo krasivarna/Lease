@@ -8,46 +8,56 @@
             <div class="table-responsive tableLarge">
                 <table th:disabled="${readonly}" class="table table-striped table-bordered">
                     <thead>
-                    <tr class="ui-icon-key">
-                        <th>Month</th>
-                        <th>Due Date</th>
-                        <th>Principal</th>
-                        <th>Interest</th>
-                        <th>Invoiced principal</th>
-                        <th>Payed principal</th>
-                        <th>Invoiced interest</th>
-                        <th>Payed interest</th>
-                        <th>Remaining Excl VAT</th>
-                        <th>Remaining Incl VAT</th>
-                    </tr>
+                        <tr class="ui-icon-key">
+                            <th>Month</th>
+                            <th>Due Date</th>
+                            <th>Principal</th>
+                            <th>Interest</th>
+                            <th>Invoiced principal</th>
+                            <th>Amount invoiced principal</th>
+                            <th>Payed principal</th>
+                            <th>Amount payed principal</th>
+                            <th>Invoiced interest</th>
+                            <th>Amount invoiced interest</th>
+                            <th>Payed interest</th>
+                            <th>Amount payed interest</th>
+                            <th>Remaining Excl VAT</th>
+                            <th>Remaining Incl VAT</th>
+                        </tr>
                     </thead>
+                    <div th:if="${hasError}" class="errors alert alert-danger">
+                         <div th:each="err: ${listErrors}"
+                             th:text="${err}"/>
+                    </div>
                     <tbody>
-                    <tr class="block" th:each="List : ${ListPay}">
-                        <td th:text="${List.getMonth()}"/>
-                        <td th:text="${List.getDueDate()}"/>
-                        <td th:text="${List.getPrincipalExclVAT()}"/>
-                        <td th:text="${List.getInterestExclVAT()}"/>
-                        <td>
-                            <input th:type="checkbox" th:value="${List.isInvoicedPrincipal()}"/>
-                        </td>
-                        <td>
-                            <input th:type="checkbox" th:value="${List.isPayedPrincipal()}"/>
-                        </td>
-                        <td>
-                            <input th:type="checkbox" th:value="${List.isInvoicedInterest()}"/>
-                        </td>
-                        <td>
-                            <input th:type="checkbox" th:value="${List.isPayedInterest()}"/>
-                        </td>
-                        <td th:text="${List.getRemainingPrincipalExclVAT()}"/>
-                        <td th:text="${List.getRemainingPrincipalInclVAT()}"/>
-                    </tr>
+                        <tr class="block" th:each="List : ${ListPay}">
+                            <td th:text="${List.getMonth()}"/>
+                            <td th:text="${List.getDueDate()}"/>
+                            <td th:text="${List.getPrincipalExclVAT()}"/>
+                            <td th:text="${List.getInterestExclVAT()}"/>
+                            <td>
+                                <input th:type="checkbox" th:value="${List.isInvoicedPrincipal()}"/>
+                            </td>
+                            <td th:text="${List.sumInvoicedPrincipalExclVAT()}"/>
+                            <td>
+                                <input th:type="checkbox" th:value="${List.isPayedPrincipal()}"/>
+                            </td>
+                            <td th:text="${List.sumPayedPrincipalInclVAT()}"/>
+                            <td>
+                                <input th:type="checkbox" th:value="${List.isInvoicedInterest()}"/>
+                            </td>
+                            <td th:text="${List.sumInvoicedInterestExclVAT()}"/>
+                            <td>
+                                <input th:type="checkbox" th:value="${List.isPayedInterest()}"/>
+                            </td>
+                            <td th:text="${List.sumPayedInterestInclVAT()}"/>
+                            <td th:text="${List.getRemainingPrincipalExclVAT()}"/>
+                            <td th:text="${List.getRemainingPrincipalInclVAT()}"/>
+                        </tr>
                     </tbody>
                 </table>
             </div>
-            <small id="error" class="text-white" th:if="${hasError}" th:text="${deleteError}">
-                error
-            </small>
+
             <div class="modal-footer">
                 <a id="cancellist" class="key btn btn-secondary" th:href="@{/leasecard/{code}(code=${contractNo})}">Close</a>
             </div>

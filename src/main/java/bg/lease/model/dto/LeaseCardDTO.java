@@ -1,12 +1,12 @@
 package bg.lease.model.dto;
 
 import bg.lease.model.enums.*;
+import net.bytebuddy.implementation.bind.annotation.Default;
+import org.springframework.boot.context.properties.bind.DefaultValue;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.Column;
-import javax.validation.constraints.Positive;
-import javax.validation.constraints.PositiveOrZero;
-import javax.validation.constraints.Size;
+import javax.validation.constraints.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
@@ -19,28 +19,34 @@ public class LeaseCardDTO {
     @DateTimeFormat(pattern="yyyy-MM-dd")
     private LocalDate contractDate;
 
-    @Positive
+    @Positive(message="Is not positive.")
     private Integer principalPeriod;
 
     @Size(max=20)
+    @NotNull(message = "The vendor code is missing.")
+    @NotEmpty(message="The vendor code is missing.")
     private String vendorNo;
 
     @Size(max=20)
     private String dimension;
 
     @Column(nullable = false)
+    @NotNull(message="Not allowed empty.")
     private PaymentType paymentType;
 
     @Column(nullable = false)
+    @NotNull(message="Not allowed empty.")
     private InvoiceType invoiceType;
 
     @Column(nullable = false)
+    @NotNull(message="Not allowed empty.")
     private LoanPaid loanPaid;
 
     @Column(nullable = false)
+    @NotNull(message="Not allowed empty.")
     private LoanType loanType;
 
-    @Positive
+    @Positive(message="User must enter positive value.")
     private int noFirstMonth;
 
     private boolean interestWithVAT;
@@ -56,15 +62,16 @@ public class LeaseCardDTO {
 
     @DateTimeFormat(pattern="yyyy-MM-dd")
     @Column(nullable = false)
+    @NotNull()
     private LocalDate beginPayOffDate;
 
-    @Positive
+    @Positive(message="User must enter positive value.")
     private BigDecimal principalInterest;
 
-    @Positive
+    @Positive(message="User must enter positive value.")
     private BigDecimal principalExclVAT;
 
-    @Positive
+    @Positive(message="User must enter positive value.")
     private BigDecimal principalInclVAT;
 
     @PositiveOrZero

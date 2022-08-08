@@ -2,6 +2,7 @@ package bg.lease.config;
 
 import bg.lease.repository.UserRepository;
 import bg.lease.service.LeaseUserDetailService;
+import bg.lease.util.TransformErrors;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,6 +15,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 public class SecurityConfig {
+
+    @Bean
+    public TransformErrors getTransformErrors(){
+        return new TransformErrors();
+    }
     @Bean
     public PasswordEncoder passwordEncoder(){
         return new Pbkdf2PasswordEncoder();

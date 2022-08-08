@@ -6,15 +6,20 @@ import bg.lease.model.exceptions.WrongLeaseStatusException;
 import bg.lease.service.LeaseDetailService;
 import bg.lease.service.LeaseService;
 import bg.lease.service.PayOffGenerateService;
+import bg.lease.util.TransformErrors;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.validation.Valid;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 @Controller
 public class LeaseCardController {
@@ -22,13 +27,16 @@ public class LeaseCardController {
     private LeaseService leaseService;
     private LeaseDetailService leaseDetailService;
     private PayOffGenerateService payOffGenerateService;
+    private TransformErrors transformErrors;
 
     public LeaseCardController(LeaseService leaseService,
                                LeaseDetailService leaseDetailService,
-                               PayOffGenerateService payOffGenerateService){
+                               PayOffGenerateService payOffGenerateService,
+                               TransformErrors transformErrors){
         this.leaseService=leaseService;
         this.leaseDetailService = leaseDetailService;
         this.payOffGenerateService = payOffGenerateService;
+        this.transformErrors = transformErrors;
     }
 
     @GetMapping("/leasecard")
@@ -41,7 +49,13 @@ public class LeaseCardController {
 
     @GetMapping("/leasecard/{code}/generateplan")
     public String generatePayoffplan(Model model, @PathVariable("code") String contractNo){
-        payOffGenerateService.generatePayoffPlan(contractNo);
+        try{
+            payOffGenerateService.generatePayoffPlan(contractNo);
+        } catch (RuntimeException e)
+        {
+            model.addAttribute("listErrors",new ArrayList<String>(Arrays.asList(e.getMessage())));
+            model.addAttribute("hasError",true);
+        }
         refreshLeaseCard(contractNo, model);
         return "leaselist";
     }
@@ -59,24 +73,29 @@ public class LeaseCardController {
                             BindingResult bindingResult,
                             RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()){
-            redirectAttributes.addFlashAttribute("leaseCardDTO",leaseCardDTO);
-            redirectAttributes.addFlashAttribute("org.springframework.validation.BindingResult.leaseCardDTO",bindingResult);
-            redirectAttributes.addFlashAttribute("showList",false);
-            redirectAttributes.addFlashAttribute("showCard",true);
-            redirectAttributes.addFlashAttribute("showDetailCard",false);
+            updateLeaseCard(redirectAttributes,bindingResult,leaseCardDTO);
             return "redirect:/leasecard";
         }
         try {
             leaseService.addCard(leaseCardDTO);
         } catch (RuntimeException e){
-            redirectAttributes.addFlashAttribute("leaseCardDTO",leaseCardDTO);
-            redirectAttributes.addFlashAttribute("org.springframework.validation.BindingResult.leaseCardDTO",bindingResult);
-            redirectAttributes.addFlashAttribute("showList",false);
-            redirectAttributes.addFlashAttribute("showCard",true);
-            redirectAttributes.addFlashAttribute("showDetailCard",false);
+            bindingResult.addError(new FieldError("","",e.getMessage()));
+            updateLeaseCard(redirectAttributes,bindingResult,leaseCardDTO);
             return "redirect:/leasecard";
         }
         return "redirect:/leasinglist";
+    }
+
+    private void updateLeaseCard(RedirectAttributes redirectAttributes,
+                                 BindingResult bindingResult,
+                                 LeaseCardDTO leaseCardDTO){
+        redirectAttributes.addFlashAttribute("leaseCardDTO",leaseCardDTO);
+        redirectAttributes.addFlashAttribute("org.springframework.validation.BindingResult.leaseCardDTO",bindingResult);
+        redirectAttributes.addFlashAttribute("showList",false);
+        redirectAttributes.addFlashAttribute("showCard",true);
+        redirectAttributes.addFlashAttribute("showDetailCard",false);
+        redirectAttributes.addFlashAttribute("listErrors",transformErrors.listOfErrors(bindingResult.getFieldErrors()));
+        redirectAttributes.addFlashAttribute("hasError",true);
     }
 
     @GetMapping("/leasecard/{code}")

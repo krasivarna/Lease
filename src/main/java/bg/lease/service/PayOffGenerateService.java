@@ -31,7 +31,7 @@ public class PayOffGenerateService {
         this.payOffRepository = payOffRepository;
     }
 
-    public void generatePayoffPlan(String contractNo) {
+    public void generatePayoffPlan(String contractNo) throws RuntimeException{
         Optional<LeaseHeaderEntity> header=leaseRepository.findByContractNo(contractNo);
         if (header.isEmpty()){
             throw new RuntimeException("Contract not found");
@@ -43,7 +43,7 @@ public class PayOffGenerateService {
 
     private boolean generatePayoffPlan(LeaseHeaderEntity leaseHeader,
                                       TypePlan typePlan, int newMonth,
-                                      boolean bollAuto){
+                                      boolean bollAuto) throws RuntimeException{
 
         if (leaseHeader.getPrincipalPeriod()==0){
             throw new RuntimeException("Missing principal period");
@@ -141,7 +141,7 @@ public class PayOffGenerateService {
         return true;
     }
 
-    private boolean checkLeaseRules(LeaseHeaderEntity leaseHeader){
+    private boolean checkLeaseRules(LeaseHeaderEntity leaseHeader) throws RuntimeException{
         if (leaseHeader.getPrincipalExclVAT().signum()==0){
             throw new RuntimeException("Principal Excl VAT is zero");
         }
@@ -171,7 +171,7 @@ public class PayOffGenerateService {
         return true;
     }
 
-    private boolean calcDetailPrincipal(LeaseHeaderEntity leaseHeader){
+    private boolean calcDetailPrincipal(LeaseHeaderEntity leaseHeader) throws RuntimeException{
         if (!checkLeaseRules(leaseHeader)) {
             return false;
         }

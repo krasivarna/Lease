@@ -1,7 +1,13 @@
 package bg.lease.model.dto;
 
+import javax.persistence.Column;
+import javax.validation.constraints.NotBlank;
+
 public class CountryDTO {
+    @Column(unique = true)
     private String no;
+
+    @NotBlank(message="Name of county is missing.")
     private String name;
 
     public CountryDTO() {

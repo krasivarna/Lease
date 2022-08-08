@@ -45,6 +45,7 @@ public class LeaseService {
         if (byNo.isPresent()){
         //    //throw  new RuntimeException("contract no");
             leaseHeader=byNo.get();
+            leaseHeader.setLeaseStatus(LeaseStatus.Empty);
         } else {
             leaseHeader=new LeaseHeaderEntity();
         }

@@ -1,6 +1,8 @@
 package bg.lease.model;
 
 import bg.lease.model.enums.*;
+import org.hibernate.annotations.ColumnDefault;
+import org.springframework.boot.context.properties.bind.DefaultValue;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
@@ -23,10 +25,12 @@ public class LeaseHeaderEntity {
     private VendorEntity vendorNo;
 
     @Column(name="Principal_Period")
+    @ColumnDefault("0")
     private Integer principalPeriod;
 
     @Size(max=20)
     @Column(name="Dimension")
+    @ColumnDefault("''")
     private String dimension;
 
     @Enumerated(EnumType.STRING)
@@ -46,9 +50,11 @@ public class LeaseHeaderEntity {
     private LoanType loanType;
 
     @Column(name="No_first_month")
+    @ColumnDefault("0")
     private int noFirstMonth;
 
     @Column(name="Interest_with_VAT")
+    @ColumnDefault("false")
     private boolean interestWithVAT=false;
 
     @Column(name="Date_modify_percent")
@@ -56,6 +62,7 @@ public class LeaseHeaderEntity {
 
     @Size(max=10)
     @Column(name="Currency_code")
+    @ColumnDefault("''")
     private String currencyCode;
 
     @Enumerated(EnumType.STRING)
@@ -66,21 +73,27 @@ public class LeaseHeaderEntity {
     private LocalDate beginPayOffDate;
 
     @Column(name="Principal_Interest")
+    @ColumnDefault("0")
     private BigDecimal principalInterest;
 
     @Column(name="Principal_Excl_VAT")
+    @ColumnDefault("0")
     private BigDecimal principalExclVAT;
 
     @Column(name="Principal_Incl_VAT")
+    @ColumnDefault("0")
     private BigDecimal principalInclVAT;
 
     @Column(name="Begin_Payment_Excl_VAT")
+    @ColumnDefault("0")
     private BigDecimal beginPaymentExclVAT;
 
     @Column(name="Begin_Payment_Incl_VAT")
+    @ColumnDefault("0")
     private BigDecimal beginPaymentInclVAT;
 
     @Column(name="Principal_Garce_Period")
+    @ColumnDefault("0")
     private int principalGracePeriod;
 
 //-----------------------------

@@ -1,13 +1,19 @@
 package bg.lease.model.dto;
 
+import com.sun.istack.NotNull;
+
+import javax.validation.constraints.NotEmpty;
 import java.math.BigDecimal;
 
 public class LeaseDetailDTO {
     private String contractNo;
     private int lineNo;
+    @NotEmpty()
     private String vehicleNo;
     private String numberPlate;
+    @NotNull()
     private BigDecimal principalExclVat;
+    @NotNull()
     private BigDecimal principalInclVat;
 
     public LeaseDetailDTO() {

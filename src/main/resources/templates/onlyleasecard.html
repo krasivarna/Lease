@@ -7,13 +7,18 @@
                 th:object="${leaseCardDTO}"
                 class="text-white main-form mx-auto col-md-12 d-flex flex-column justify-content-center">
             <input class="td-hide" id="source_lookup_id"/>
+            <div th:if="${hasError}" class="errors alert alert-danger">
+                <p>Has errors:</p>
+                <div th:each="err: ${listErrors}"
+                     th:text="${err}"/>
+            </div>
             <ul class="nav nav-tabs mt-5">
                 <li class="nav-item"><a href="#page1" class="nav-link active"
-                                        data-bs-toggle="tab">page 1</a></li>
+                                        data-bs-toggle="tab">General</a></li>
                 <li class="nav-item"><a href="#page2" class="nav-link"
-                                        data-bs-toggle="tab">page 2</a></li>
+                                        data-bs-toggle="tab">Periods</a></li>
                 <li class="nav-item"><a href="#page3" class="nav-link"
-                                        data-bs-toggle="tab">page 3</a></li>
+                                        data-bs-toggle="tab">Amounts</a></li>
             </ul>
             <div class="tab-content">
                 <div class="tab-pane fade show active" id="page1">
@@ -21,6 +26,7 @@
                         <div class="form-group col-md-3 mb-3">
                         <label for="contractNo" class="font-weight-bold">Contract No.</label>
                         <input id="contractNo"
+                               th:name="contractNo"
                                th:field="*{contractNo}"
                                th:errorclass="is-invalid"
                                type="text"
@@ -35,6 +41,7 @@
                         <div class="form-group col-md-3 mb-3">
                         <label for="contractDate" class="font-weight-bold">Contract Date</label>
                         <input id="contractDate"
+                               th:name="contractDate"
                                th:field="*{contractDate}"
                                th:errorclass="is-invalid"
                                type="date"
@@ -52,6 +59,7 @@
                             <div class="input-group-text arrow icon-down" onclick="CreateLookupVendor(document.getElementById('vendorNo').value,
                                                                                                   document.getElementById('leasecard'))" id="btn2"></div>
                             <input id="vendorNo"
+                                   th:name="vendorNo"
                                    th:field="*{vendorNo}"
                                    th:errorclass="is-invalid"
                                    class="form-control"
@@ -65,6 +73,7 @@
                         <div class="form-group col-md-3 mb-3">
                         <label for="dimension" class="font-weight-bold">Dimension</label>
                         <input id="dimension"
+                               th:name="dimension"
                                th:field="*{dimension}"
                                th:errorclass="is-invalid"
                                type="text"
@@ -81,6 +90,7 @@
                         <div class="form-group col-md-3 mb-3">
                         <label for="invoicetype" class="font-weight-bold">Invoice type</label>
                         <select id="invoicetype"
+                                th:name="invoicetype"
                                 th:field="*{invoiceType}"
                                 th:errorclass="is-invalid"
                                 type="text"
@@ -98,6 +108,7 @@
                         <div class="form-group col-md-3 mb-3">
                         <label for="principalPeriod" class="font-weight-bold">Principal Period</label>
                         <input id="principalPeriod"
+                               th:name="principalPeriod"
                                th:field="*{principalPeriod}"
                                th:errorclass="is-invalid"
                                type="number"
@@ -112,6 +123,7 @@
                         <div class="form-group col-md-3 mb-3">
                         <label for="paymenttype" class="font-weight-bold">Payment type</label>
                         <select id="paymenttype"
+                                th:name="paymentType"
                                 th:field="*{paymentType}"
                                 th:errorclass="is-invalid"
                                 type="text"
@@ -129,6 +141,7 @@
                         <div class="form-group col-md-3 mb-3">
                         <label for="loanPaid" class="font-weight-bold">Loan paid</label>
                         <select id="loanPaid"
+                                th:name="loanPaid"
                                 th:field="*{loanPaid}"
                                 th:errorclass="is-invalid"
                                 type="text"
@@ -150,6 +163,7 @@
                         <div class="form-group col-md-3 mb-3">
                             <label for="loantype" class="font-weight-bold">Loan type</label>
                             <select id="loantype"
+                                    th:name="loanType"
                                 th:field="*{loanType}"
                                 th:errorclass="is-invalid"
                                 type="text"
@@ -167,6 +181,7 @@
                         <div class="form-group col-md-3 mb-3">
                         <label for="noFirstMonth" class="font-weight-bold">No. first month</label>
                         <input id="noFirstMonth"
+                               th:name="noFirstMonth"
                                th:field="*{noFirstMonth}"
                                th:errorclass="is-invalid"
                                type="number"
@@ -175,13 +190,13 @@
                         <small
                                 id="noFirstMonthHelpInline"
                                 class="invalid-feedback bg-danger text-light rounded">
-                            Number first month must positive.
                         </small>
                     </div>
                         <div class="form-group col-md-3 mb-3">
                         <label for="interestWithVAT" class="font-weight-bold" >Interest with VAT</label>
                         <input id="interestWithVAT"
-                               th:field="*{interestWithVAT}"
+                               th:name="interestWithVAT"
+                               th:fielid="*{interestWithVAT}"
                                th:errorclass="is-invalid"
                                type="checkbox"
                                class="form-control">
@@ -194,6 +209,7 @@
                         <div class="form-group col-md-3 mb-3">
                         <label for="datemodifypercent" class="font-weight-bold">Date modify percent</label>
                         <input id="datemodifypercent"
+                                th:name="dateModifyPercent"
                                th:field="*{dateModifyPercent}"
                                th:errorclass="is-invalid"
                                type="date"
@@ -209,6 +225,7 @@
                         <div class="form-group col-md-3 mb-3">
                         <label for="currencyCode" class="font-weight-bold">Currency code</label>
                         <input id="currencyCode"
+                               th:name="currencyCode"
                                th:field="*{currencyCode}"
                                th:errorclass="is-invalid"
                                type="text"
@@ -223,6 +240,7 @@
                         <div class="form-group col-md-3 mb-3">
                         <label for="leaseStatus" class="font-weight-bold">Loan type</label>
                         <select id="leaseStatus"
+                                th:name="leaseStatus"
                                 th:field="*{leaseStatus}"
                                 th:errorclass="is-invalid"
                                 type="text"
@@ -240,6 +258,7 @@
                         <div class="form-group col-md-3 mb-3">
                         <label for="payoffDate" class="font-weight-bold">Begin payoff date</label>
                         <input id="payoffDate"
+                               th:name="beginPayOffDate"
                                th:field="*{beginPayOffDate}"
                                th:errorclass="is-invalid"
                                type="date"
@@ -253,6 +272,7 @@
                         <div class="form-group col-md-3 mb-3">
                         <label for="graceperiod" class="font-weight-bold">Principal grace period</label>
                         <input id="graceperiod"
+                               th:name="principalGracePeriod"
                                th:field="*{principalGracePeriod}"
                                th:errorclass="is-invalid"
                                type="number"
@@ -271,6 +291,7 @@
                         <div class="form-group col-md-3 mb-3">
                             <label for="principalinterest" class="font-weight-bold">Principal Interest</label>
                             <input id="principalinterest"
+                                   th:name="principalInterest"
                                    th:field="*{principalInterest}"
                                    th:errorclass="is-invalid"
                                    type="number" step="0.01"
@@ -282,6 +303,7 @@
                         <div class="form-group col-md-3 mb-3">
                             <label for="principalExclVat" class="font-weight-bold">Principal Excl VAT</label>
                             <input id="principalExclVat"
+                                   th:name="principalExclVAT"
                                    th:field="*{principalExclVAT}"
                                    th:errorclass="is-invalid"
                                    type="number" step="0.01"
@@ -291,6 +313,7 @@
                         <div class="form-group col-md-3 mb-3">
                             <label for="principalInclVat" class="font-weight-bold">Principal Incl VAT</label>
                             <input id="principalInclVat"
+                                   th:name="principalInclVAT"
                                    th:field="*{principalInclVAT}"
                                    th:errorclass="is-invalid"
                                    type="number" step="0.01"
@@ -300,6 +323,7 @@
                         <div class="form-group col-md-3 mb-3">
                             <label for="beginPaymentExclVat" class="font-weight-bold">Begin Payment Excl VAT</label>
                             <input id="beginPaymentExclVat"
+                                   th:name="beginPaymentExclVAT"
                                    th:field="*{beginPaymentExclVAT}"
                                    th:errorclass="is-invalid"
                                    type="number" step="0.01"
@@ -309,6 +333,7 @@
                         <div class="form-group col-md-3 mb-3">
                             <label for="beginPaymentInclVat" class="font-weight-bold">Begin Payment Incl VAT</label>
                             <input id="beginPaymentInclVat"
+                                   th:name="beginPaymentInclVAT"
                                    th:field="*{beginPaymentInclVAT}"
                                    th:errorclass="is-invalid"
                                    type="number" step="0.01"

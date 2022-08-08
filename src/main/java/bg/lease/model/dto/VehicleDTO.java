@@ -1,7 +1,9 @@
 package bg.lease.model.dto;
 
-public class VehicleDTO {
+import javax.validation.constraints.NotEmpty;
 
+public class VehicleDTO {
+    @NotEmpty
     private String no;
     private String numberPlate;
     private String vehicleModel;

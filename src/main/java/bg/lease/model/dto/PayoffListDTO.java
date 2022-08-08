@@ -1,9 +1,13 @@
 package bg.lease.model.dto;
 
+import bg.lease.model.LeaseApplyEntity;
 import bg.lease.model.LeaseDetailEntity;
+import bg.lease.model.enums.LeaseApplyType;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.util.List;
 
 public class PayoffListDTO {
     private Long entryNo;
@@ -18,6 +22,7 @@ public class PayoffListDTO {
     private boolean payedPrincipal;
     private boolean invoicedInterest;
     private boolean payedInterest;
+    private List<LeaseApplyEntity> applyList;
 
     public PayoffListDTO() {
     }
@@ -116,5 +121,55 @@ public class PayoffListDTO {
 
     public void setPayedInterest(boolean payedInterest) {
         this.payedInterest = payedInterest;
+    }
+
+    public List<LeaseApplyEntity> getApplyList() {
+        return applyList;
+    }
+
+    public void setApplyList(List<LeaseApplyEntity> applyList) {
+        this.applyList = applyList;
+    }
+
+    public BigDecimal sumInvoicedPrincipalExclVAT(){
+        return new BigDecimal(this.applyList.stream()
+                .filter(a -> a.getType().equals(LeaseApplyType.Principal))
+                .mapToDouble(a -> a.getAmountExclVAT().doubleValue())
+                .sum()).setScale(2, RoundingMode.HALF_UP);
+    }
+
+    public BigDecimal sumInvoicedPrincipalInclVAT(){
+        return new BigDecimal(this.applyList.stream()
+                .filter(a -> a.getType().equals(LeaseApplyType.Principal))
+                .mapToDouble(a -> a.getAmountInclVAT().doubleValue())
+                .sum()).setScale(2, RoundingMode.HALF_UP);
+    }
+
+    public BigDecimal sumInvoicedInterestExclVAT(){
+        return new BigDecimal(this.applyList.stream()
+                .filter(a -> a.getType().equals(LeaseApplyType.Interest))
+                .mapToDouble(a -> a.getAmountExclVAT().doubleValue())
+                .sum()).setScale(2, RoundingMode.HALF_UP);
+    }
+
+    public BigDecimal sumInvoicedInterestInclVAT(){
+        return new BigDecimal(this.applyList.stream()
+                .filter(a -> a.getType().equals(LeaseApplyType.Interest))
+                .mapToDouble(a -> a.getAmountInclVAT().doubleValue())
+                .sum()).setScale(2, RoundingMode.HALF_UP);
+    }
+
+    public BigDecimal sumPayedPrincipalInclVAT(){
+        return new BigDecimal(this.applyList.stream()
+                .filter(a -> a.getType().equals(LeaseApplyType.Principal))
+                .mapToDouble(a -> a.getPayAmountInclVAT().doubleValue())
+                .sum()).setScale(2,RoundingMode.HALF_UP);
+    }
+
+    public BigDecimal sumPayedInterestInclVAT(){
+        return new BigDecimal(this.applyList.stream()
+                .filter(a -> a.getType().equals(LeaseApplyType.Interest))
+                .mapToDouble(a -> a.getPayAmountInclVAT().doubleValue())
+                .sum()).setScale(2,RoundingMode.HALF_UP);
     }
 }

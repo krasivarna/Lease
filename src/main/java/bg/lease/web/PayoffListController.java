@@ -1,10 +1,15 @@
 package bg.lease.web;
 
+import bg.lease.model.dto.PayoffListDTO;
 import bg.lease.service.PayoffService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 @Controller
 public class PayoffListController {
@@ -19,10 +24,13 @@ public class PayoffListController {
     public String payOffList(Model model,
                              @PathVariable("code") String contractNo,
                              @PathVariable("lineno") int lineNo){
-        model.addAttribute("ListPay",this.payoffService.payoffList(contractNo, lineNo));
+        List<PayoffListDTO> results=this.payoffService.payoffList(contractNo, lineNo);
+        model.addAttribute("ListPay",results);
         model.addAttribute("contractNo",contractNo);
         model.addAttribute("showPay",true);
         model.addAttribute("readonly",true);
+        model.addAttribute("hasError",results.size()==0);
+        model.addAttribute("listErrors",new ArrayList<String>(Arrays.asList("No data for this filter!")));
         return "payofflist";
     }
 }

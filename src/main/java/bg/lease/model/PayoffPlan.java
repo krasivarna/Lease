@@ -276,4 +276,12 @@ public class PayoffPlan {
     public void setLeaseDetail(LeaseDetailEntity leaseDetail) {
         this.leaseDetail = leaseDetail;
     }
+
+    public List<LeaseApplyEntity> getApplyList() {
+        return applyList;
+    }
+
+    public void setApplyList(List<LeaseApplyEntity> applyList) {
+        this.applyList = applyList;
+    }
 }

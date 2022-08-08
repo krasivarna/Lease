@@ -1,9 +1,12 @@
 package bg.lease.model.dto;
 
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
 
 public class VendorDTO {
+    @NotEmpty()
     private String no;
+    @NotEmpty(message="The vendor name is missing.")
     private String name;
     @Size(min=5,max=15)
     private String vatRegistration;

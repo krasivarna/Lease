@@ -38,6 +38,7 @@ public class PayoffService {
         result.setPayedPrincipal(payplan.isPayedPrincipal());
         result.setInvoicedInterest(payplan.isInvoicedInterest());
         result.setPayedInterest(payplan.isPayedInterest());
+        result.setApplyList(payplan.getApplyList());
 
         return result;
     }
