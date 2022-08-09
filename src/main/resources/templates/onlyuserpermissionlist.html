@@ -1,0 +1,59 @@
+<th:block>
+    <div id="userpermissionlist" class="container" th:if="${hideCard}">
+        <h2 class="text-center text-dark">User Permission list</h2>
+        <form
+                th:action="@{/userpermissionlist}"
+                th:method="post"
+                class="main-form text-white">
+            <div class="table-responsive">
+                <table class="table table-striped table-bordered">
+                    <thead>
+                    <tr class="ui-icon-key">
+                        <th>actions</th>
+                        <th>ID</th>
+                        <th>User</th>
+                        <th>Permission</th>
+                        <th>Read</th>
+                        <th>Insert</th>
+                        <th>Update</th>
+                        <th>Delete</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr class="block" th:each="regionList : ${userpermissionList}">
+                        <td>
+                            <a type="button" class="btn btn-link"
+                               th:href="@{/userpermissioncard/{id}(id=${regionList.getId()})}">
+                                <img class="img_action" src="/images/edit.png">
+                            </a>
+                            <a type="button" class="btn btn-link"
+                               th:href="@{/deleteuserpermissioncard/{id}(id=${regionList.getId()})}">
+                                <img class="img_action" src="/images/delete.png">
+                            </a>
+                        </td>
+                        <td th:text="${regionList.getId()}"/>
+                        <td th:text="${regionList.getUsername()}"/>
+                        <td th:text="${regionList.getUrl()}"/>
+                        <td>
+                            <input th:type="checkbox" th:checked="${regionList.isReadSet()}"/>
+                        </td>
+                        <td>
+                            <input th:type="checkbox" th:checked="${regionList.isInsertSet()}"/>
+                        </td>
+                        <td>
+                            <input th:type="checkbox" th:checked="${regionList.isEditSet()}"/>
+                        </td>
+                        <td>
+                            <input th:type="checkbox" th:checked="${regionList.isDeleteSet()}"/>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <a id="newcard" class="key btn btn-lg" th:href="@{/userpermissioncard}">New</a>
+                <a id="card" class="btn btn btn-secondary" th:href="@{/}">Close</a>
+            </div>
+        </form>
+    </div>
+</th:block>

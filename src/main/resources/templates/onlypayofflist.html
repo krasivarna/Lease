@@ -36,19 +36,19 @@
                             <td th:text="${List.getPrincipalExclVAT()}"/>
                             <td th:text="${List.getInterestExclVAT()}"/>
                             <td>
-                                <input th:type="checkbox" th:value="${List.isInvoicedPrincipal()}"/>
+                                <input th:type="checkbox" th:checked="${List.isInvoicedPrincipal()}"/>
                             </td>
                             <td th:text="${List.sumInvoicedPrincipalExclVAT()}"/>
                             <td>
-                                <input th:type="checkbox" th:value="${List.isPayedPrincipal()}"/>
+                                <input th:type="checkbox" th:checked="${List.isPayedPrincipal()}"/>
                             </td>
                             <td th:text="${List.sumPayedPrincipalInclVAT()}"/>
                             <td>
-                                <input th:type="checkbox" th:value="${List.isInvoicedInterest()}"/>
+                                <input th:type="checkbox" th:vchecked="${List.isInvoicedInterest()}"/>
                             </td>
                             <td th:text="${List.sumInvoicedInterestExclVAT()}"/>
                             <td>
-                                <input th:type="checkbox" th:value="${List.isPayedInterest()}"/>
+                                <input th:type="checkbox" th:checked="${List.isPayedInterest()}"/>
                             </td>
                             <td th:text="${List.sumPayedInterestInclVAT()}"/>
                             <td th:text="${List.getRemainingPrincipalExclVAT()}"/>

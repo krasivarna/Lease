@@ -1,11 +1,7 @@
 package bg.lease.util;
 
-import bg.lease.model.CountryEntity;
-import bg.lease.model.VehicleEntity;
-import bg.lease.model.VendorEntity;
-import bg.lease.repository.CountryRepository;
-import bg.lease.repository.VehicleRepository;
-import bg.lease.repository.VendorRepository;
+import bg.lease.model.*;
+import bg.lease.repository.*;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
@@ -18,13 +14,22 @@ public class InitDatabase implements CommandLineRunner {
     private CountryRepository countryRepository;
     private VehicleRepository vehicleRepository;
     private VendorRepository vendorRepository;
+    private PermissionRepository permissionRepository;
+    private UserPermissionRepository userPermissionRepository;
+    private UserRepository userRepository;
 
     public InitDatabase(CountryRepository countryRepository,
                         VehicleRepository vehicleRepository,
-                        VendorRepository vendorRepository) {
+                        VendorRepository vendorRepository,
+                        PermissionRepository permissionRepository,
+                        UserPermissionRepository userPermissionRepository,
+                        UserRepository userRepository) {
         this.countryRepository = countryRepository;
         this.vehicleRepository = vehicleRepository;
         this.vendorRepository = vendorRepository;
+        this.permissionRepository = permissionRepository;
+        this.userPermissionRepository = userPermissionRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -32,6 +37,8 @@ public class InitDatabase implements CommandLineRunner {
         setCountries();
         setVehicles();
         setVendors();
+        setPermissions();
+        setUserPermission();
     }
 
     private void setCountries(){
@@ -75,6 +82,38 @@ public class InitDatabase implements CommandLineRunner {
                     "ул. 8 Септември 66",countryRepository.findByNo("BG").get(),"Русе"));
 
             vendorRepository.saveAll(results);
+        }
+    }
+
+    private void setPermissions(){
+        if (this.permissionRepository.count()==0){
+            List<PermissionEntity> result=new ArrayList<>();
+            result.add(new PermissionEntity("/countrylist"));           //list
+            result.add(new PermissionEntity("/countrycard"));           //new card
+            result.add(new PermissionEntity("/countrycard/"));          //edit card
+            result.add(new PermissionEntity("/deletecountrycard/"));    //delete card
+
+            permissionRepository.saveAll(result);
+        }
+    }
+
+    private void setUserPermission(){
+        if (this.userPermissionRepository.count()==0){
+            List<UserPermissionEntity> result=new ArrayList<>();
+            result.add(new UserPermissionEntity(userRepository.findById(Long.valueOf(1)).get(),
+                                                permissionRepository.findById(1).get(),
+                                        true,true,true,true));
+            result.add(new UserPermissionEntity(userRepository.findById(Long.valueOf(1)).get(),
+                    permissionRepository.findById(2).get(),
+                    true,true,true,true));
+            result.add(new UserPermissionEntity(userRepository.findById(Long.valueOf(1)).get(),
+                    permissionRepository.findById(3).get(),
+                    true,true,true,true));
+            result.add(new UserPermissionEntity(userRepository.findById(Long.valueOf(1)).get(),
+                    permissionRepository.findById(4).get(),
+                    true,true,true,true));
+
+            userPermissionRepository.saveAll(result);
         }
     }
 }

@@ -40,7 +40,7 @@ public class InvoiceService {
         return result;
     }
 
-    public void addCard(InvoiceDTO invoiceDTO) {
+    public void addCard(InvoiceDTO invoiceDTO) throws RuntimeException{
         LeaseApplyEntity invoice= new LeaseApplyEntity();
         invoice.setDocumentType(invoiceDTO.getDocumentType());
         invoice.setDocumentNo(invoiceDTO.getDocumentNo());
@@ -55,5 +55,9 @@ public class InvoiceService {
         invoice.setPayplanEntry(opPay.get());
 
         invoiceRepository.save(invoice);
+
+        List<LeaseApplyEntity> documents=opPay.get().getApplyList();
+        documents.add(invoice);
+        payOffRepository.save(opPay.get());
     }
 }

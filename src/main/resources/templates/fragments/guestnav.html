@@ -72,7 +72,23 @@
                 <div>login</div>
             </div>
         </li>
+        <li>
+            <div class="content_img">
+                <a th:href="@{/permissionlist}">
+                    <img src="/images/permission.png" width="130" height="65">
+                </a>
+                <div>permissions</div>
+            </div>
         </li>
+        <li>
+            <div class="content_img">
+                <a th:href="@{/userpermissionlist}">
+                    <img src="/images/userpermission.png" width="130" height="65">
+                </a>
+                <div>user permissions</div>
+            </div>
+        </li>
+        <li>
             <form th:action="@{/users/logout}" th:method="post">
                 <div class="content_img">
                     <input class="btn btn-link nav-link" type="image" src="/images/logout.png" alt="Submit" value="Logout">

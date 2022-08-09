@@ -131,6 +131,9 @@ public class PayoffListDTO {
         this.applyList = applyList;
     }
 
+
+
+
     public BigDecimal sumInvoicedPrincipalExclVAT(){
         return new BigDecimal(this.applyList.stream()
                 .filter(a -> a.getType().equals(LeaseApplyType.Principal))

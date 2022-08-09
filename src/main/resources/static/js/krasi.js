@@ -8,7 +8,7 @@ function GetVendorId() {
 function GetPayoffId(){
     let currentRow=$(this).closest('tr');
     let currentNo=currentRow.find('td:eq(0)').find('a').text();
-    let No=document.getElementById('payEntry');
+    let No=document.getElementById('payplanEntry');
     No.value=currentNo;
     HideLookup();
 }
