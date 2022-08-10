@@ -1,8 +1,11 @@
 package bg.lease.model.dto;
 
+import bg.lease.model.enums.PermissionType;
+
 public class PermissionDTO {
     private int id;
-    private String url;
+    private String description;
+    private PermissionType permissionType;
 
     public PermissionDTO() {
     }
@@ -15,11 +18,19 @@ public class PermissionDTO {
         this.id = id;
     }
 
-    public String getUrl() {
-        return url;
+    public String getDescription() {
+        return description;
     }
 
-    public void setUrl(String url) {
-        this.url = url;
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public PermissionType getPermissionType() {
+        return permissionType;
+    }
+
+    public void setPermissionType(PermissionType permissionType) {
+        this.permissionType = permissionType;
     }
 }

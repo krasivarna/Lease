@@ -1,5 +1,7 @@
 package bg.lease.model;
 
+import bg.lease.model.enums.PermissionType;
+
 import javax.persistence.*;
 
 @Entity
@@ -9,7 +11,10 @@ public class PermissionEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    private String url;
+    private String description;
+
+    @Enumerated(EnumType.STRING)
+    private PermissionType permissionType;
 
     public PermissionEntity() {
     }
@@ -22,15 +27,25 @@ public class PermissionEntity {
         this.id = id;
     }
 
-    public String getUrl() {
-        return url;
+    public String getDescription() {
+        return description;
     }
 
-    public void setUrl(String url) {
-        this.url = url;
+    public void setDescription(String url) {
+        this.description = description;
     }
 
-    public PermissionEntity(String url) {
-        this.url = url;
+    public PermissionEntity(String description,
+                            PermissionType permissionType) {
+        this.description = description;
+        this.permissionType=permissionType;
+    }
+
+    public PermissionType getPermissionType() {
+        return permissionType;
+    }
+
+    public void setPermissionType(PermissionType permissionType) {
+        this.permissionType = permissionType;
     }
 }

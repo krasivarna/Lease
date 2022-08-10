@@ -2,6 +2,7 @@ package bg.lease.web;
 
 import bg.lease.model.dto.LeaseDetailDTO;
 import bg.lease.service.LeaseDetailService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.validation.Valid;
+import java.security.Principal;
 
 @Controller
 public class LeaseDetailCardController {
@@ -21,6 +23,7 @@ public class LeaseDetailCardController {
         this.leaseDetailService = leaseDetailService;
     }
 
+    @PreAuthorize("@globalPermissionService.LeaseDetailIsRead(#principal.name)")
     @GetMapping("/leasedetailcard/{code}/{lineno}")
     public String editLeaseDetailCard(Model model,
                                       @PathVariable("code") String contractNo,
@@ -32,10 +35,12 @@ public class LeaseDetailCardController {
         return "leaselist";
     }
 
+    @PreAuthorize("@globalPermissionService.LeaseDetailIsInsert(#principal.name)")
     @PostMapping("/leasedetailcard")
     public String LeaseCard(@Valid LeaseDetailDTO leaseDetailDTO,
                             BindingResult bindingResult,
-                            RedirectAttributes redirectAttributes) {
+                            RedirectAttributes redirectAttributes,
+                            Principal principal) {
         if (bindingResult.hasErrors()){
             redirectAttributes.addFlashAttribute("leaseDetailDTO",leaseDetailDTO);
             redirectAttributes.addFlashAttribute("org.springframework.validation.BindingResult.leaseDetailDTO",bindingResult);
@@ -57,10 +62,12 @@ public class LeaseDetailCardController {
         return "redirect:/leasecard/"+leaseDetailDTO.getContractNo();
     }
 
+    @PreAuthorize("@globalPermissionService.LeaseDetailIsDelete(#principal.name)")
     @GetMapping("/deleteleasedetailcard/{code}/{lineno}")
     public String deleteLeaseDeatilCard(Model model,
                                         @PathVariable("code") String contractNo,
-                                        @PathVariable("lineno") int lineNo){
+                                        @PathVariable("lineno") int lineNo,
+                                        Principal principal){
         model.addAttribute("hideCard",false);
         this.leaseDetailService.deleteCard(contractNo,lineNo);
         return "redirect:/leasecard/"+contractNo;

@@ -1,6 +1,7 @@
 package bg.lease.util;
 
 import bg.lease.model.*;
+import bg.lease.model.enums.PermissionType;
 import bg.lease.repository.*;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -88,29 +89,45 @@ public class InitDatabase implements CommandLineRunner {
     private void setPermissions(){
         if (this.permissionRepository.count()==0){
             List<PermissionEntity> result=new ArrayList<>();
-            result.add(new PermissionEntity("/countrylist"));           //list
-            result.add(new PermissionEntity("/countrycard"));           //new card
-            result.add(new PermissionEntity("/countrycard/"));          //edit card
-            result.add(new PermissionEntity("/deletecountrycard/"));    //delete card
+            result.add(new PermissionEntity("country", PermissionType.COUNTRY));
+            result.add(new PermissionEntity("vehicle",PermissionType.VEHICLE));
+            result.add(new PermissionEntity("vendor",PermissionType.VENDOR));
+            result.add(new PermissionEntity("lease",PermissionType.LEASE));
+            result.add(new PermissionEntity("lease detail",PermissionType.LEASE_DETAIL));
+            result.add(new PermissionEntity("payoff",PermissionType.PAYOFF));
+            result.add(new PermissionEntity("invoice payment",PermissionType.INVOICE_PAYMENT));
+            result.add(new PermissionEntity("user permissions",PermissionType.USER_PERMISSION));
 
             permissionRepository.saveAll(result);
         }
     }
 
     private void setUserPermission(){
-        if (this.userPermissionRepository.count()==0){
+        if ((this.userPermissionRepository.count()==0) && (this.userRepository.count()==1)) {
             List<UserPermissionEntity> result=new ArrayList<>();
             result.add(new UserPermissionEntity(userRepository.findById(Long.valueOf(1)).get(),
-                                                permissionRepository.findById(1).get(),
+                    permissionRepository.findByPermissionType(PermissionType.COUNTRY).get(),
                                         true,true,true,true));
             result.add(new UserPermissionEntity(userRepository.findById(Long.valueOf(1)).get(),
-                    permissionRepository.findById(2).get(),
+                    permissionRepository.findByPermissionType(PermissionType.VEHICLE).get(),
                     true,true,true,true));
             result.add(new UserPermissionEntity(userRepository.findById(Long.valueOf(1)).get(),
-                    permissionRepository.findById(3).get(),
+                    permissionRepository.findByPermissionType(PermissionType.VENDOR).get(),
                     true,true,true,true));
             result.add(new UserPermissionEntity(userRepository.findById(Long.valueOf(1)).get(),
-                    permissionRepository.findById(4).get(),
+                    permissionRepository.findByPermissionType(PermissionType.LEASE).get(),
+                    true,true,true,true));
+            result.add(new UserPermissionEntity(userRepository.findById(Long.valueOf(1)).get(),
+                    permissionRepository.findByPermissionType(PermissionType.LEASE_DETAIL).get(),
+                    true,true,true,true));
+            result.add(new UserPermissionEntity(userRepository.findById(Long.valueOf(1)).get(),
+                    permissionRepository.findByPermissionType(PermissionType.PAYOFF).get(),
+                    true,true,true,true));
+            result.add(new UserPermissionEntity(userRepository.findById(Long.valueOf(1)).get(),
+                    permissionRepository.findByPermissionType(PermissionType.INVOICE_PAYMENT).get(),
+                    true,true,true,true));
+            result.add(new UserPermissionEntity(userRepository.findById(Long.valueOf(1)).get(),
+                    permissionRepository.findByPermissionType(PermissionType.USER_PERMISSION).get(),
                     true,true,true,true));
 
             userPermissionRepository.saveAll(result);

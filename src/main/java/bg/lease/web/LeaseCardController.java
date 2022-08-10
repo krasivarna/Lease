@@ -7,17 +7,18 @@ import bg.lease.service.LeaseDetailService;
 import bg.lease.service.LeaseService;
 import bg.lease.service.PayOffGenerateService;
 import bg.lease.util.TransformErrors;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
-import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.validation.Valid;
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -39,14 +40,16 @@ public class LeaseCardController {
         this.transformErrors = transformErrors;
     }
 
+    @PreAuthorize("@globalPermissionService.LeaseIsInsert(#principal.name)")
     @GetMapping("/leasecard")
-    public String leaseCard(Model model) {
+    public String leaseCard(Model model, Principal principal) {
         model.addAttribute("leaseDetails",new LeaseDetailDTO());
         model.addAttribute("leaseCardDTO",new LeaseCardDTO());
         setModelAttribute(model, false, true, false);
         return "leaselist";
     }
 
+    @PreAuthorize("@globalPermissionService.PayoffIsInsert(#principal.name)")
     @GetMapping("/leasecard/{code}/generateplan")
     public String generatePayoffplan(Model model, @PathVariable("code") String contractNo){
         try{
@@ -60,18 +63,21 @@ public class LeaseCardController {
         return "leaselist";
     }
 
+    @PreAuthorize("@globalPermissionService.PayoffIsDelete(#principal.name)")
     @GetMapping("/leasecard/{code}/deleteplan")
-    public String deletePayoffplan(Model model,@PathVariable("code") String contractNo)
+    public String deletePayoffplan(Model model,@PathVariable("code") String contractNo,Principal principal)
     {
         payOffGenerateService.deletePayoffPlan(contractNo);
         refreshLeaseCard(contractNo, model);
         return "leaselist";
     }
 
+    @PreAuthorize("@globalPermissionService.LeaseIsInsert(#principal.name)")
     @PostMapping("/leasecard")
     public String LeaseCard(@Valid LeaseCardDTO leaseCardDTO,
                             BindingResult bindingResult,
-                            RedirectAttributes redirectAttributes) {
+                            RedirectAttributes redirectAttributes,
+                            Principal principal) {
         if (bindingResult.hasErrors()){
             updateLeaseCard(redirectAttributes,bindingResult,leaseCardDTO);
             return "redirect:/leasecard";
@@ -98,15 +104,18 @@ public class LeaseCardController {
         redirectAttributes.addFlashAttribute("hasError",true);
     }
 
+    @PreAuthorize("@globalPermissionService.LeaseIsRead(#principal.name)")
     @GetMapping("/leasecard/{code}")
-    public String editLeaseCard(Model model, @PathVariable("code") String contractNo){
+    public String editLeaseCard(Model model, @PathVariable("code") String contractNo,Principal principal){
         refreshLeaseCard(contractNo, model);
         return "leaselist";
     }
 
+    @PreAuthorize("@globalPermissionService.LeaseIsDelete(#principal.name)")
     @GetMapping("/deleteleasecard/{code}")
     public String deleteLeaseCard(@PathVariable("code") String contractNo,
-                                  Model model) throws WrongLeaseStatusException {
+                                  Model model,
+                                  Principal principal) throws WrongLeaseStatusException {
         try{
             this.leaseService.deleteCard(contractNo);
         } catch (WrongLeaseStatusException e) {

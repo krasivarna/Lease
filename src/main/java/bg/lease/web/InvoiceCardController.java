@@ -4,6 +4,7 @@ import bg.lease.model.dto.InvoiceDTO;
 import bg.lease.model.dto.LeaseCardDTO;
 import bg.lease.service.InvoiceService;
 import bg.lease.util.TransformErrors;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.validation.Valid;
+import java.security.Principal;
 
 @Controller
 public class InvoiceCardController {
@@ -26,17 +28,20 @@ public class InvoiceCardController {
         this.transformErrors = transformErrors;
     }
 
+    @PreAuthorize("@globalPermissionService.InvPayIsInsert(#principal.name)")
     @GetMapping("/invoicecard")
-    public String invoiceCard(Model model) {
+    public String invoiceCard(Model model, Principal principal) {
         model.addAttribute("invoiceDTO",new InvoiceDTO());
         model.addAttribute("hideCard",false);
         return "invoicelist";
     }
 
+    @PreAuthorize("@globalPermissionService.InvPayIsInsert(#principal.name)")
     @PostMapping("/invoicecard")
     public String invoiceCard(@Valid InvoiceDTO invoiceDTO,
                               BindingResult bindingResult,
-                              RedirectAttributes redirectAttributes){
+                              RedirectAttributes redirectAttributes,
+                              Principal principal){
         if (bindingResult.hasErrors()){
             updateInvoiceCard(redirectAttributes,bindingResult,invoiceDTO);
             return "redirect:/invoicecard";

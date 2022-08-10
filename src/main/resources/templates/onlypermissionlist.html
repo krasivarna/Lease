@@ -10,8 +10,9 @@
           <thead>
           <tr class="ui-icon-key">
             <th>actions</th>
-            <th>ID</th>
-            <th>URL</th>
+            <th>Id</th>
+            <th>Description</th>
+            <th>Type</th>
           </tr>
           </thead>
           <tbody>
@@ -27,7 +28,8 @@
               </a>
             </td>
             <td th:text="${regionList.getId()}"/>
-            <td th:text="${regionList.getUrl()}"/>
+            <td th:text="${regionList.getDescription()}"/>
+            <td th:text="${regionList.getPermissionType()}"/>
           </tr>
           </tbody>
         </table>

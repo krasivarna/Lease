@@ -3,7 +3,7 @@ package bg.lease.model.dto;
 public class UserPermissionDTO {
     private int id;
     private String username;
-    private String url;
+    private String description;
     private boolean readSet;
     private boolean insertSet;
     private boolean editSet;
@@ -60,11 +60,11 @@ public class UserPermissionDTO {
         this.username = username;
     }
 
-    public String getUrl() {
-        return url;
+    public String getDescription() {
+        return description;
     }
 
-    public void setUrl(String url) {
-        this.url = url;
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

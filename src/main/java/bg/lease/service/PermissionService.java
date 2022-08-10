@@ -25,7 +25,8 @@ public class PermissionService {
     private PermissionDTO map(PermissionEntity permission) {
         PermissionDTO result = new PermissionDTO();
         result.setId(permission.getId());
-        result.setUrl(permission.getUrl());
+        result.setDescription(permission.getDescription());
+        result.setPermissionType(permission.getPermissionType());
         return result;
     }
 }

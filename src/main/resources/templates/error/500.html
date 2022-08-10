@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Error page</title>
+    <th:block th:replace="~{/fragments/head}"></th:block>
+</head>
+<body>
+<form class="main-form text-white">
+    <h2 class="text-center">Error 500 !</h2>
+    <h2 class="text-center">
+        <a th:href="@{/}">Go to home page!</a>
+    </h2>
+</form>
+</body>
+</html>

@@ -24,7 +24,7 @@ public class VendorService {
         this.countryRepository = countryRepository;
     }
 
-    public void addCard(VendorDTO vendorDTO) {
+    public void addCard(VendorDTO vendorDTO) throws RuntimeException {
         Optional<VendorEntity> byNo=this.vendorRepository.findByNo(vendorDTO.getNo());
 
         Optional<CountryEntity> byCountryNo=this.countryRepository.findByNo(vendorDTO.getCountry());
@@ -88,7 +88,7 @@ public class VendorService {
         return result;
     }
 
-    public VendorDTO editCard(String vendorNo){
+    public VendorDTO editCard(String vendorNo) throws RuntimeException {
         Optional<VendorEntity> optVendor=vendorRepository.findByNo(vendorNo);
         if (optVendor.isEmpty()){
             throw new RuntimeException("vendor not found");
