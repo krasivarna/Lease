@@ -1,11 +1,23 @@
 <nav class="main-nav navbar fixed-top">
     <ul>
         <li>
+            <form th:method="get">
+                <span th:text="#{index_language}" for="lang"></span>
+                <select
+                        onchange="this.form.submit()"
+                        id="lang"
+                        name="lang">
+                    <option value="en_US" th:selected="${#locale.toString()} == 'en_US'">English</option>
+                    <option value="bg_BG" th:selected="${#locale.toString()} == 'bg_BG'">Български</option>
+                </select>
+            </form>
+        </li>
+        <li>
             <div class="content_img">
                 <a th:href="@{/}">
                     <img src="/images/home.png" width="130" height="65">
                 </a>
-                <div>home</div>
+                <div th:text="#{index_home}">home</div>
             </div>
         </li>
         <li>
@@ -13,7 +25,7 @@
                 <a th:href="@{/countrylist}">
                     <img src="/images/countries.png" width="130" height="65">
                 </a>
-                <div>countries</div>
+                <div th:text="#{index_countries}">countries</div>
             </div>
         </li>
         <li>
@@ -21,7 +33,7 @@
                 <a th:href="@{/vehiclelist}">
                     <img src="/images/vehicles.png" width="130" height="65">
                 </a>
-                <div>vehicles</div>
+                <div th:text="#{index_vehicles}">vehicles</div>
             </div>
         </li>
         <li>
@@ -29,7 +41,7 @@
                 <a th:href="@{/vendorlist}">
                     <img src="/images/vendors.png" width="130" height="65">
                 </a>
-                <div>vendors</div>
+                <div th:text="#{index_vendors}">vendors</div>
             </div>
         </li>
         <li>
@@ -37,7 +49,7 @@
                 <a th:href="@{/leasinglist}">
                     <img src="/images/leasing.png" width="130" height="65">
                 </a>
-                <div>leasings</div>
+                <div th:text="#{index_leasings}">leasings</div>
             </div>
         </li>
         <li>
@@ -45,7 +57,7 @@
                 <a th:href="@{/invoicelist}">
                     <img src="/images/invoice.png" width="130" height="65">
                 </a>
-                <div>invoices</div>
+                <div th:text="#{index_invoices}">invoices</div>
             </div>
         </li>
         <li>
@@ -53,7 +65,7 @@
                 <a th:href="@{/paymentlist}">
                     <img src="/images/payments.png" width="130" height="65">
                 </a>
-                <div>payments</div>
+                <div th:text="#{index_payments}">payments</div>
             </div>
         </li>
         <li>
@@ -61,7 +73,7 @@
                 <a th:href="@{/users/register}">
                     <img src="/images/register.png" width="130" height="65">
                 </a>
-                <div>register</div>
+                <div th:text="#{index_register}">register</div>
             </div>
         </li>
         <li>
@@ -69,7 +81,7 @@
                 <a th:href="@{/users/login}">
                     <img src="/images/login.png" width="130" height="65">
                 </a>
-                <div>login</div>
+                <div th:text="#{index_login}">login</div>
             </div>
         </li>
         <li>
@@ -77,7 +89,7 @@
                 <a th:href="@{/permissionlist}">
                     <img src="/images/permission.png" width="130" height="65">
                 </a>
-                <div>permissions</div>
+                <div th:text="#{index_permissions}">permissions</div>
             </div>
         </li>
         <li>
@@ -85,16 +97,19 @@
                 <a th:href="@{/userpermissionlist}">
                     <img src="/images/userpermission.png" width="130" height="65">
                 </a>
-                <div>user permissions</div>
+                <div th:text="#{index_userpermissions}">user permissions</div>
             </div>
         </li>
         <li>
             <form th:action="@{/users/logout}" th:method="post">
                 <div class="content_img">
                     <input class="btn btn-link nav-link" type="image" src="/images/logout.png" alt="Submit" value="Logout">
-                    <div>logout</div>
+                    <div th:text="#{index_logut}">logout</div>
                 </div>
             </form>
         </li>
     </ul>
 </nav>
+
+
+

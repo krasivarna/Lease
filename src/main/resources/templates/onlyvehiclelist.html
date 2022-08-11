@@ -1,6 +1,6 @@
 <th:block>
     <div id="vehiclelist" class="container" th:if="${hideCard}">
-        <h2 class="text-center text-dark">Vehicle list</h2>
+        <h2 class="text-center text-dark" th:text="#{vehicle_list_title}">Vehicle list</h2>
         <form
                 th:action="@{/vehiclelist}"
                 th:method="post"
@@ -9,10 +9,10 @@
                 <table class="table table-striped table-bordered">
                     <thead>
                     <tr class="ui-icon-key">
-                        <th>actions</th>
-                        <th>Vehicle No.</th>
-                        <th>Vehicle number plate</th>
-                        <th>Vehicle model</th>
+                        <th th:text="#{table_actions}">actions</th>
+                        <th th:text="#{vehicle_no}">Vehicle No.</th>
+                        <th th:text="#{vehicle_plate}">Vehicle number plate</th>
+                        <th th:text="#{vehicle_model}">Vehicle model</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -33,8 +33,8 @@
                 </table>
             </div>
             <div class="modal-footer">
-                <a id="newlist" class="key btn btn-lg" th:href="@{/vehiclecard}">New</a>
-                <a id="cancellist" class="btn btn btn-secondary" th:href="@{/}">Close</a>
+                <a id="newlist" class="key btn btn-lg" th:text="#{button_new}" th:href="@{/vehiclecard}">New</a>
+                <a id="cancellist" class="btn btn btn-secondary" th:text="#{button_close}" th:href="@{/}">Close</a>
             </div>
         </form>
     </div>

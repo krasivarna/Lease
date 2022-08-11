@@ -1,11 +1,21 @@
 <!doctype html>
 <html lang="en"
-      xmlns:th="http://www.thymeleaf.org">
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
     <head>
         <title>Lease app</title>
         <th:block th:replace="~{/fragments/head}"></th:block>
     </head>
     <body>
+        <h5 class="text-center text-danger mt-5">
+            Welcome to Lease application
+            <span sec:authorize="isAuthenticated()"
+                th:text="${#authentication.principal.getUsername}">
+            </span>
+            <span sec:authorize="!isAuthenticated()">
+                Anonymous
+            </span>
+        </h5>
         <th:block th:include="~{/fragments/navigation}"></th:block>
-    </body>
+     </body>
 </html>
