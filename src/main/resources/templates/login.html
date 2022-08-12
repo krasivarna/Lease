@@ -8,13 +8,13 @@
 
     <body>
          <div class="container">
-    <h2 class="text-center text-white">Login</h2>
+    <h2 class="text-center text-white" th:text="#{login_title}">Login</h2>
     <form
             th:action="@{/users/login}"
             th:method="POST"
           class="main-form mx-auto col-md-8 d-flex flex-column justify-content-center">
         <div class="form-group">
-            <label for="username" class="text-white font-weight-bold">Username</label>
+            <label for="username" class="text-white font-weight-bold" th:text="#{login_username}">Username</label>
             <input id="username"
                    th:value="${username}"
                    name="username"
@@ -23,20 +23,20 @@
                    class="form-control"/>
         </div>
         <div class="form-group">
-            <label for="password" class="text-white font-weight-bold">Password</label>
+            <label for="password" class="text-white font-weight-bold" th:text="#{login_password}">Password</label>
             <input  id="password"
                     name="password"
                     type="password"
                     min="2" max="20"
                     class="form-control"/>
-            <p th:if="${badcredentials}" class="errors alert alert-danger">
+            <p th:if="${badcredentials}" class="errors alert alert-danger" th:text="#{login_error_username}">
                 Invalid username or password.
             </p>
 
         </div>
         <div class="modal-footer">
-            <button id="savecard" class="btn btn-primary" type="submit">Login</button>
-            <a id="cancelcard" class="btn btn btn-secondary" type="button" th:href="@{/}">Cancel</a>
+            <button id="savecard" class="btn btn-primary" type="submit" th:text="#{button_login}">Login</button>
+            <a id="cancelcard" class="btn btn btn-secondary" type="button" th:href="@{/}" th:text="#{button_cancel}">Cancel</a>
         </div>
 
     </form>

@@ -27,7 +27,8 @@ public class LeaseDetailCardController {
     @GetMapping("/leasedetailcard/{code}/{lineno}")
     public String editLeaseDetailCard(Model model,
                                       @PathVariable("code") String contractNo,
-                                      @PathVariable("lineno") int lineNo){
+                                      @PathVariable("lineno") int lineNo,
+                                      Principal principal){
         model.addAttribute("leaseDetailDTO",this.leaseDetailService.editLeaseDetailCard(contractNo, lineNo));
         model.addAttribute("showList",false);
         model.addAttribute("showCard",false);

@@ -7,9 +7,9 @@
 </head>
 <body>
 <form class="main-form text-white">
-    <h2 class="text-center">The URL is not found !</h2>
+    <h2 class="text-center" th:text="#{error_404}">The URL is not found !</h2>
     <h2 class="text-center">
-        <a th:href="@{/}">Go to home page!</a>
+        <a th:href="@{/}" th:text="#{go_home}">Go to home page!</a>
     </h2>
 </form>
 </body>

@@ -1,6 +1,6 @@
 <th:block>
     <div id="leasecard" class="container" th:if="${showCard}">
-        <h2 class="text-center text-danger">Lease Card</h2>
+        <h2 class="text-center text-danger" th:text="#{lease_card_title}">Lease Card</h2>
         <form
                 th:action="@{/leasecard}"
                 th:method="post"
@@ -8,23 +8,23 @@
                 class="text-white main-form mx-auto col-md-12 d-flex flex-column justify-content-center">
             <input class="td-hide" id="source_lookup_id"/>
             <div th:if="${hasError}" class="errors alert alert-danger">
-                <p>Has errors:</p>
+                <p th:text="#{has_errors}">Has errors:</p>
                 <div th:each="err: ${listErrors}"
                      th:text="${err}"/>
             </div>
             <ul class="nav nav-tabs mt-5">
                 <li class="nav-item"><a href="#page1" class="nav-link active"
-                                        data-bs-toggle="tab">General</a></li>
+                                        data-bs-toggle="tab" th:text="#{lease_page_general}">General</a></li>
                 <li class="nav-item"><a href="#page2" class="nav-link"
-                                        data-bs-toggle="tab">Periods</a></li>
+                                        data-bs-toggle="tab" th:text="#{lease_page_period}">Periods</a></li>
                 <li class="nav-item"><a href="#page3" class="nav-link"
-                                        data-bs-toggle="tab">Amounts</a></li>
+                                        data-bs-toggle="tab" th:text="#{lease_page_amount}">Amounts</a></li>
             </ul>
             <div class="tab-content">
                 <div class="tab-pane fade show active" id="page1">
                     <div class="row">
                         <div class="form-group col-md-3 mb-3">
-                        <label for="contractNo" class="font-weight-bold">Contract No.</label>
+                        <label for="contractNo" class="font-weight-bold" th:text="#{lease_no}">Contract No.</label>
                         <input id="contractNo"
                                th:name="contractNo"
                                th:field="*{contractNo}"
@@ -39,7 +39,7 @@
                         </small>
                     </div>
                         <div class="form-group col-md-3 mb-3">
-                        <label for="contractDate" class="font-weight-bold">Contract Date</label>
+                        <label for="contractDate" class="font-weight-bold" th:text="#{lease_contract_date}">Contract Date</label>
                         <input id="contractDate"
                                th:name="contractDate"
                                th:field="*{contractDate}"
@@ -54,7 +54,7 @@
                         </small>
                     </div>
                         <div class="form-group col-md-3 mb-3">
-                        <label for="vendorNo" class="font-weight-bold">Vendor No.</label>
+                        <label for="vendorNo" class="font-weight-bold" th:text="#{vendor_no}">Vendor No.</label>
                         <div class="input-group">
                             <div class="input-group-text arrow icon-down" onclick="CreateLookupVendor(document.getElementById('vendorNo').value,
                                                                                                   document.getElementById('leasecard'))" id="btn2"></div>
@@ -71,7 +71,7 @@
                         </div>
                     </div>
                         <div class="form-group col-md-3 mb-3">
-                        <label for="dimension" class="font-weight-bold">Dimension</label>
+                        <label for="dimension" class="font-weight-bold" th:text="#{lease_dimension}">Dimension</label>
                         <input id="dimension"
                                th:name="dimension"
                                th:field="*{dimension}"
@@ -88,14 +88,14 @@
                     </div>
                     <div class="row">
                         <div class="form-group col-md-3 mb-3">
-                        <label for="invoicetype" class="font-weight-bold">Invoice type</label>
+                        <label for="invoicetype" class="font-weight-bold" th:text="#{lease_invoice_type}">Invoice type</label>
                         <select id="invoicetype"
                                 th:name="invoicetype"
                                 th:field="*{invoiceType}"
                                 th:errorclass="is-invalid"
                                 type="text"
                                 class="form-control">
-                            <option value="">- Select invoice type -</option>
+                            <option value="" th:text="#{lease_invoice_select}">- Select invoice type -</option>
                             <option th:each="invType : ${T(bg.lease.model.enums.InvoiceType).values()}"
                                     th:value="${invType}" th:text="${invType}" th:selected="${invType}==*{invoiceType}"></option>
                         </select>
@@ -106,7 +106,7 @@
                         </small>
                     </div>
                         <div class="form-group col-md-3 mb-3">
-                        <label for="principalPeriod" class="font-weight-bold">Principal Period</label>
+                        <label for="principalPeriod" class="font-weight-bold" th:text="#{lease_principal_period}">Principal Period</label>
                         <input id="principalPeriod"
                                th:name="principalPeriod"
                                th:field="*{principalPeriod}"
@@ -121,14 +121,14 @@
                         </small>
                     </div>
                         <div class="form-group col-md-3 mb-3">
-                        <label for="paymenttype" class="font-weight-bold">Payment type</label>
+                        <label for="paymenttype" class="font-weight-bold" th:text="#{lease_payment_type}">Payment type</label>
                         <select id="paymenttype"
                                 th:name="paymentType"
                                 th:field="*{paymentType}"
                                 th:errorclass="is-invalid"
                                 type="text"
                                 class="form-control">
-                            <option value="">- Select payment type -</option>
+                            <option value="" th:text="#{lease_payment_select}">- Select payment type -</option>
                             <option th:each="payType : ${T(bg.lease.model.enums.PaymentType).values()}"
                                     th:value="${payType}" th:text="${payType}" th:selected="${payType}==*{paymentType}"></option>
                         </select>
@@ -139,14 +139,14 @@
                         </small>
                     </div>
                         <div class="form-group col-md-3 mb-3">
-                        <label for="loanPaid" class="font-weight-bold">Loan paid</label>
+                        <label for="loanPaid" class="font-weight-bold" th:text="#{lease_loan_paid}">Loan paid</label>
                         <select id="loanPaid"
                                 th:name="loanPaid"
                                 th:field="*{loanPaid}"
                                 th:errorclass="is-invalid"
                                 type="text"
                                 class="form-control">
-                            <option value="">- Select loan paid -</option>
+                            <option value="" th:text="#{lease_loan_paid_select}">- Select loan paid -</option>
                             <option th:each="loanPaid : ${T(bg.lease.model.enums.LoanPaid).values()}"
                                     th:value="${loanPaid}" th:text="${loanPaid}" th:selected="${loanPaid}==*{loanPaid}"></option>
                         </select>
@@ -161,14 +161,14 @@
                 <div class="tab-pane fade" id="page2">
                     <div class="row">
                         <div class="form-group col-md-3 mb-3">
-                            <label for="loantype" class="font-weight-bold">Loan type</label>
+                            <label for="loantype" class="font-weight-bold" th:text="#{lease_loan_type}">Loan type</label>
                             <select id="loantype"
                                     th:name="loanType"
                                 th:field="*{loanType}"
                                 th:errorclass="is-invalid"
                                 type="text"
                                 class="form-control">
-                                <option value="">- Select Loan type -</option>
+                                <option value="" th:text="#{lease_loan_type_select}">- Select Loan type -</option>
                                 <option th:each="loanType : ${T(bg.lease.model.enums.LoanType).values()}"
                                     th:value="${loanType}" th:text="${loanType}" th:selected="${loanType}==*{loanType}"></option>
                             </select>
@@ -179,7 +179,7 @@
                             </small>
                         </div>
                         <div class="form-group col-md-3 mb-3">
-                        <label for="noFirstMonth" class="font-weight-bold">No. first month</label>
+                        <label for="noFirstMonth" class="font-weight-bold" th:text="#{lease_first_month}">No. first month</label>
                         <input id="noFirstMonth"
                                th:name="noFirstMonth"
                                th:field="*{noFirstMonth}"
@@ -193,7 +193,7 @@
                         </small>
                     </div>
                         <div class="form-group col-md-3 mb-3">
-                        <label for="interestWithVAT" class="font-weight-bold" >Interest with VAT</label>
+                        <label for="interestWithVAT" class="font-weight-bold" th:text="#{lease_interest_with_vat}">Interest with VAT</label>
                         <input id="interestWithVAT"
                                th:name="interestWithVAT"
                                th:fielid="*{interestWithVAT}"
@@ -208,7 +208,7 @@
                         </small>
                     </div>
                         <div class="form-group col-md-3 mb-3">
-                        <label for="datemodifypercent" class="font-weight-bold">Date modify percent</label>
+                        <label for="datemodifypercent" class="font-weight-bold" th:text="#{lease_date_modify}">Date modify percent</label>
                         <input id="datemodifypercent"
                                 th:name="dateModifyPercent"
                                th:field="*{dateModifyPercent}"
@@ -224,7 +224,7 @@
                     </div>
                     <div class="row">
                         <div class="form-group col-md-3 mb-3">
-                        <label for="currencyCode" class="font-weight-bold">Currency code</label>
+                        <label for="currencyCode" class="font-weight-bold" th:text="#{lease_currency}">Currency code</label>
                         <input id="currencyCode"
                                th:name="currencyCode"
                                th:field="*{currencyCode}"
@@ -239,14 +239,14 @@
                         </small>
                     </div>
                         <div class="form-group col-md-3 mb-3">
-                        <label for="leaseStatus" class="font-weight-bold">Loan type</label>
+                        <label for="leaseStatus" class="font-weight-bold" th:text="#{lease_status}">Loan status</label>
                         <select id="leaseStatus"
                                 th:name="leaseStatus"
                                 th:field="*{leaseStatus}"
                                 th:errorclass="is-invalid"
                                 type="text"
                                 class="form-control">
-                            <option value="">- Select Lease status -</option>
+                            <option value="" th:text="#{lease_status_select}">- Select Lease status -</option>
                             <option th:each="leaseStatus : ${T(bg.lease.model.enums.LeaseStatus).values()}"
                                     th:value="${leaseStatus}" th:text="${leaseStatus}" th:selected="${leaseStatus}==*{leaseStatus}"></option>
                         </select>
@@ -257,7 +257,7 @@
                         </small>
                     </div>
                         <div class="form-group col-md-3 mb-3">
-                        <label for="payoffDate" class="font-weight-bold">Begin payoff date</label>
+                        <label for="payoffDate" class="font-weight-bold" th:text="#{lease_begin_date}">Begin payoff date</label>
                         <input id="payoffDate"
                                th:name="beginPayOffDate"
                                th:field="*{beginPayOffDate}"
@@ -271,7 +271,7 @@
                         </small>
                     </div>
                         <div class="form-group col-md-3 mb-3">
-                        <label for="graceperiod" class="font-weight-bold">Principal grace period</label>
+                        <label for="graceperiod" class="font-weight-bold" th:text="#{lease_principal_grace}">Principal grace period</label>
                         <input id="graceperiod"
                                th:name="principalGracePeriod"
                                th:field="*{principalGracePeriod}"
@@ -290,7 +290,7 @@
                 <div class="tab-pane fade" id="page3">
                     <div class="row">
                         <div class="form-group col-md-3 mb-3">
-                            <label for="principalinterest" class="font-weight-bold">Principal Interest</label>
+                            <label for="principalinterest" class="font-weight-bold" th:text="#{lease_principal_interest}">Principal Interest</label>
                             <input id="principalinterest"
                                    th:name="principalInterest"
                                    th:field="*{principalInterest}"
@@ -302,7 +302,7 @@
                     </div>
                     <div class="row">
                         <div class="form-group col-md-3 mb-3">
-                            <label for="principalExclVat" class="font-weight-bold">Principal Excl VAT</label>
+                            <label for="principalExclVat" class="font-weight-bold" th:text="#{lease_principal_excl}">Principal Excl VAT</label>
                             <input id="principalExclVat"
                                    th:name="principalExclVAT"
                                    th:field="*{principalExclVAT}"
@@ -312,7 +312,7 @@
                                    placeholder="Principal Excl VAT"/>
                         </div>
                         <div class="form-group col-md-3 mb-3">
-                            <label for="principalInclVat" class="font-weight-bold">Principal Incl VAT</label>
+                            <label for="principalInclVat" class="font-weight-bold" th:text="#{lease_principal_incl}">Principal Incl VAT</label>
                             <input id="principalInclVat"
                                    th:name="principalInclVAT"
                                    th:field="*{principalInclVAT}"
@@ -322,7 +322,7 @@
                                    placeholder="Principal Incl VAT"/>
                         </div>
                         <div class="form-group col-md-3 mb-3">
-                            <label for="beginPaymentExclVat" class="font-weight-bold">Begin Payment Excl VAT</label>
+                            <label for="beginPaymentExclVat" class="font-weight-bold" th:text="#{lease_begin_excl}">Begin Payment Excl VAT</label>
                             <input id="beginPaymentExclVat"
                                    th:name="beginPaymentExclVAT"
                                    th:field="*{beginPaymentExclVAT}"
@@ -332,7 +332,7 @@
                                    placeholder="Begin Payment Excl VAT"/>
                         </div>
                         <div class="form-group col-md-3 mb-3">
-                            <label for="beginPaymentInclVat" class="font-weight-bold">Begin Payment Incl VAT</label>
+                            <label for="beginPaymentInclVat" class="font-weight-bold" th:text="#{lease_payment_incl}">Begin Payment Incl VAT</label>
                             <input id="beginPaymentInclVat"
                                    th:name="beginPaymentInclVAT"
                                    th:field="*{beginPaymentInclVAT}"
@@ -348,17 +348,17 @@
                 <table class="table table-striped table-bordered">
                     <thead >
                         <tr class="ui-icon-key">
-                            <th>
+                            <th >
                                 <th:block>
                                     <a th:href="@{/leasedetailcard/{code}/0(code=${leaseCardDTO.contractNo})}">
                                         <img class="img_action" src="/images/add.png">
                                     </a>
                                 </th:block>
                                 actions</th>
-                            <th>Vehicle no</th>
-                            <th>Vehicle plate number</th>
-                            <th>Principal Excl Vat</th>
-                            <th>Principal Incl Vat</th>
+                            <th th:text="#{vehicle_no}">Vehicle no</th>
+                            <th th:text="#{vehicle_plate}">Vehicle plate number</th>
+                            <th th:text="#{lease_principal_excl}">Principal Excl Vat</th>
+                            <th th:text="#{lease_principal_incl}">Principal Incl Vat</th>
                         </tr>
                     </thead>
                     <tbody class=" fixedTable">
@@ -392,11 +392,11 @@
             </div>
             <div class="modal-footer">
                 <a id="generateentries" class="btn btn-success" type="button"
-                   th:href="@{/leasecard/{code}/generateplan(code=${leaseCardDTO.contractNo})}">Generate plan</a>
+                   th:href="@{/leasecard/{code}/generateplan(code=${leaseCardDTO.contractNo})}" th:text="#{button_generate_plan}">Generate plan</a>
                 <a id="deleteentries" class="btn btn-toolbar" type="button"
-                   th:href="@{/leasecard/{code}/deleteplan(code=${leaseCardDTO.contractNo})}">Delete plan</a>
-                <button id="savecard" class="btn btn-primary" type="submit">Save</button>
-                <a id="cancelcard" class="btn btn-secondary" type="button" th:href="@{/leasinglist}">Cancel</a>
+                   th:href="@{/leasecard/{code}/deleteplan(code=${leaseCardDTO.contractNo})}" th:text="#{button_delete_plan}">Delete plan</a>
+                <button id="savecard" class="btn btn-primary" type="submit" th:text="#{button_save}">Save</button>
+                <a id="cancelcard" class="btn btn-secondary" type="button" th:href="@{/leasinglist}" th:text="#{button_cancel}">Cancel</a>
             </div>
         </form>
     </div>

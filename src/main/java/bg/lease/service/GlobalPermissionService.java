@@ -69,7 +69,7 @@ public class GlobalPermissionService {
         return getPermissionFromRepository(username,PermissionType.LEASE,ActionType.DELETE);
     }
 
-    public boolean LeaseDetailCountryIsRead(String username){
+    public boolean LeaseDetailIsRead(String username){
         return getPermissionFromRepository(username,PermissionType.LEASE_DETAIL,ActionType.READ);
     }
     public boolean LeaseDetailIsInsert(String username){

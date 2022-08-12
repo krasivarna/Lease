@@ -7,7 +7,7 @@
                 th:object="${vendorDTO}"
                 class="text-white main-form mx-auto col-md-8 d-flex flex-column justify-content-center">
             <div th:if="${hasError}" class="errors alert alert-danger">
-                <p>Has errors:</p>
+                <p th:text="#{has_errors}">Has errors:</p>
                 <div th:each="err: ${listErrors}"
                      th:text="${err}"/>
             </div>
@@ -15,6 +15,7 @@
                 <div class="form-group col-md-6 mb-3">
                     <label for="no" class="font-weight-bold" th:text="#{vendor_no}">Vendor No.</label>
                     <input id="no"
+                           name="no"
                            th:field="*{no}"
                            th:errorclass="is-invalid"
                            type="text"
@@ -24,6 +25,7 @@
                 <div class="form-group col-md-6 mb-3">
                     <label for="name" class="font-weight-bold" th:text="#{vendor_name}">Vendor Name</label>
                     <input id="name"
+                           name="name"
                            th:field="*{name}"
                            th:errorclass="is-invalid"
                            type="text"
@@ -38,6 +40,7 @@
                         <div class="input-group-text arrow icon-down" onclick="CreateLookupCountry(document.getElementById('country').value,
                                                                                                document.getElementById('vendorcard'))" id="btn2"></div>
                         <input id="country"
+                               name="country"
                                th:field="*{country}"
                                th:errorclass="is-invalid"
                                type="text"
@@ -52,6 +55,7 @@
                 <div class="form-group col-md-6 mb-3">
                     <label for="city" class="font-weight-bold" th:text="#{vendor_city}">City</label>
                     <input id="city"
+                           name="city"
                            th:field="*{city}"
                            th:errorclass="is-invalid"
                            type="text"
@@ -61,6 +65,7 @@
                 <div class="form-group col-md-6 mb-3">
                     <label for="address" class="font-weight-bold" th:text="#{vendor_address}">Address</label>
                     <input id="address"
+                           name="address"
                            th:field="*{address}"
                            th:errorclass="is-invalid"
                            type="text"
@@ -72,6 +77,7 @@
                 <div class="form-group col-md-6 mb-3">
                     <label for="vatregistration" class="font-weight-bold" th:text="#{vendor_vatnumber}">VAT Registration</label>
                     <input id="vatregistration"
+                           name="vatRegistration"
                            th:field="*{vatRegistration}"
                            th:errorclass="is-invalid"
                            type="text"

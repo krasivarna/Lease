@@ -51,7 +51,7 @@ public class LeaseCardController {
 
     @PreAuthorize("@globalPermissionService.PayoffIsInsert(#principal.name)")
     @GetMapping("/leasecard/{code}/generateplan")
-    public String generatePayoffplan(Model model, @PathVariable("code") String contractNo){
+    public String generatePayoffplan(Model model, @PathVariable("code") String contractNo,Principal principal){
         try{
             payOffGenerateService.generatePayoffPlan(contractNo);
         } catch (RuntimeException e)

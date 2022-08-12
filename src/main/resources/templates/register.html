@@ -8,7 +8,7 @@
 
     <body>
         <div class="container">
-    <h2 class="text-center text-white">Register User</h2>
+    <h2 class="text-center text-white" th:text="#{register_title}">Register User</h2>
     <form
           th:action="@{/users/register}"
           th:method="post"
@@ -16,8 +16,9 @@
           class="text-white main-form mx-auto col-md-8 d-flex flex-column justify-content-center">
         <div class="row">
             <div class="form-group col-md-6 mb-3">
-                <label for="username" class="font-weight-bold">Username</label>
+                <label for="username" class="font-weight-bold" th:text="#{login_username}">Username</label>
                 <input id="username"
+                       name="username"
                        th:field="*{username}"
                        th:errorclass="is-invalid"
                        type="text"
@@ -29,33 +30,33 @@
                 </div>
             </div>
             <div class="form-group col-md-6 mb-3">
-                <label for="password" class="font-weight-bold">Password</label>
+                <label for="password" class="font-weight-bold" th:text="#{login_password}">Password</label>
                 <input id="password"
                        th:field="*{password}"
                        th:errorclass="is-invalid"
                        type="password"
                        class="form-control"
                        placeholder="Password"/>
-                <p class="invalid-feedback errors alert alert-danger">
+                <p class="invalid-feedback errors alert alert-danger" th:text="#{register_password_required}">
                     Password is required.
                 </p>
             </div>
         </div>
         <div class="form-group">
-            <label for="confirmPassword" class="font-weight-bold">Password</label>
+            <label for="confirmPassword" class="font-weight-bold" th:text="#{register_confirm}">Password</label>
             <input id="confirmPassword"
                    th:field="*{confirmPassword}"
                    th:errorclass="is-invalid"
                    type="password"
                    class="form-control"
                    placeholder="Password"/>
-            <p class="invalid-feedback errors alert alert-danger">
+            <p class="invalid-feedback errors alert alert-danger" th:text="#{register_password_match}">
                 Password should match.
             </p>
         </div>
         <div class="modal-footer">
-            <button id="savecard" class="btn btn-primary" type="submit">Register</button>
-            <a id="cancelcard" class="btn btn btn-secondary" type="button" th:href="@{/}">Cancel</a>
+            <button id="savecard" class="btn btn-primary" type="submit" th:text="#{button_register}">Register</button>
+            <a id="cancelcard" class="btn btn btn-secondary" type="button" th:href="@{/}" th:text="#{button_cancel}">Cancel</a>
         </div>
      </form>
 </div>
