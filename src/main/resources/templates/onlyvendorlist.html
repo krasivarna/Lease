@@ -1,6 +1,6 @@
 <th:block>
     <div id="vendorlist" class="container" th:if="${hideCard}">
-        <h2 class="text-center text-dark">Vendor list</h2>
+        <h2 class="text-center text-dark" th:text="#{vendor_list_title}">Vendor list</h2>
         <form
                 th:action="@{/vendorlist}"
                 th:method="post"
@@ -9,13 +9,13 @@
                 <table class="table table-striped table-bordered">
                     <thead>
                     <tr class="ui-icon-key">
-                        <th>actions</th>
-                        <th>Vendor No.</th>
-                        <th>Vendor Name</th>
-                        <th>VAT registration No.</th>
-                        <th>Country</th>
-                        <th>City</th>
-                        <th>Address</th>
+                        <th th:text="#{table_actions}">actions</th>
+                        <th th:text="#{vendor_no}">Vendor No.</th>
+                        <th th:text="#{vendor_name}">Vendor Name</th>
+                        <th th:text="#{vendor_vatnumber}">VAT registration No.</th>
+                        <th th:text="#{country_no}">Country</th>
+                        <th th:text="#{vendor_city}">City</th>
+                        <th th:text="#{vendor_address}">Address</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -39,8 +39,8 @@
                 </table>
             </div>
             <div class="modal-footer">
-                <a id="newlist" class="key btn btn-lg" th:href="@{/vendorcard}">New</a>
-                <a id="cancellist" class="btn btn btn-secondary" th:href="@{/}">Close</a>
+                <a id="newlist" class="key btn btn-lg" th:href="@{/vendorcard}" th:text="#{button_new}">New</a>
+                <a id="cancellist" class="btn btn btn-secondary" th:href="@{/}" th:text="#{button_close}">Close</a>
             </div>
         </form>
     </div>

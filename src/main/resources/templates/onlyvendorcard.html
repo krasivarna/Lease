@@ -1,6 +1,6 @@
 <th:block>
     <div id="vendorcard" class="container" th:unless="${hideCard}">
-        <h2 class="text-center text-dark" >Vendor Card</h2>
+        <h2 class="text-center text-dark" th:text="#{vendor_card_title}">Vendor Card</h2>
         <form
                 th:action="@{/vendorcard}"
                 th:method="post"
@@ -13,7 +13,7 @@
             </div>
             <div class="row">
                 <div class="form-group col-md-6 mb-3">
-                    <label for="no" class="font-weight-bold">Vendor No.</label>
+                    <label for="no" class="font-weight-bold" th:text="#{vendor_no}">Vendor No.</label>
                     <input id="no"
                            th:field="*{no}"
                            th:errorclass="is-invalid"
@@ -22,7 +22,7 @@
                            placeholder="Vendor No."/>
                 </div>
                 <div class="form-group col-md-6 mb-3">
-                    <label for="name" class="font-weight-bold">Vendor Name</label>
+                    <label for="name" class="font-weight-bold" th:text="#{vendor_name}">Vendor Name</label>
                     <input id="name"
                            th:field="*{name}"
                            th:errorclass="is-invalid"
@@ -33,7 +33,7 @@
             </div>
             <div class="row">
                 <div class="form-group col-md-6 mb-3">
-                    <label for="country" class="font-weight-bold">Country</label>
+                    <label for="country" class="font-weight-bold" th:text="#{country_no}">Country</label>
                     <div class="input-group">
                         <div class="input-group-text arrow icon-down" onclick="CreateLookupCountry(document.getElementById('country').value,
                                                                                                document.getElementById('vendorcard'))" id="btn2"></div>
@@ -50,7 +50,7 @@
                     </div>
                 </div>
                 <div class="form-group col-md-6 mb-3">
-                    <label for="city" class="font-weight-bold">City</label>
+                    <label for="city" class="font-weight-bold" th:text="#{vendor_city}">City</label>
                     <input id="city"
                            th:field="*{city}"
                            th:errorclass="is-invalid"
@@ -59,7 +59,7 @@
                            placeholder="City"/>
                 </div>
                 <div class="form-group col-md-6 mb-3">
-                    <label for="address" class="font-weight-bold">Address</label>
+                    <label for="address" class="font-weight-bold" th:text="#{vendor_address}">Address</label>
                     <input id="address"
                            th:field="*{address}"
                            th:errorclass="is-invalid"
@@ -70,7 +70,7 @@
             </div>
             <div class="row">
                 <div class="form-group col-md-6 mb-3">
-                    <label for="vatregistration" class="font-weight-bold">VAT Registration</label>
+                    <label for="vatregistration" class="font-weight-bold" th:text="#{vendor_vatnumber}">VAT Registration</label>
                     <input id="vatregistration"
                            th:field="*{vatRegistration}"
                            th:errorclass="is-invalid"
@@ -80,8 +80,8 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button id="savecard" class="btn btn-primary" type="submit">Save</button>
-                <a id="cancelcard" class="btn btn btn-secondary" type="button" th:href="@{/vendorlist}">Cancel</a>
+                <button id="savecard" class="btn btn-primary" type="submit" th:text="#{button_save}">Save</button>
+                <a id="cancelcard" class="btn btn btn-secondary" type="button" th:href="@{/vendorlist}" th:text="#{button_cancel}">Cancel</a>
             </div>
         </form>
     </div>
