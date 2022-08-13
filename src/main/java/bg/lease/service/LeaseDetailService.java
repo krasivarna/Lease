@@ -79,7 +79,7 @@ public class LeaseDetailService {
         }
         Optional<VehicleEntity> optVehicle=vehicleRepository.findByNo(leaseDetailDTO.getVehicleNo());
         if (optVehicle.isEmpty()){
-            throw  new RuntimeException("vehicle not exit");
+            throw  new RuntimeException("vehicle "+leaseDetailDTO.getVehicleNo()+" not exit");
         }
 
         leaseDetail.setVehicle(optVehicle.get());
@@ -98,7 +98,7 @@ public class LeaseDetailService {
         if (byNo.isPresent()){
             return byNo.get();
         } else {
-            throw new RuntimeException("missing detail entity");
+            throw new RuntimeException("missing detail entity ("+contractNo+"/"+lineNo+")");
         }
     }
 

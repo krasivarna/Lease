@@ -8,11 +8,13 @@
     </head>
     <body>
         <h5 class="text-center text-danger mt-5">
-            Welcome to Lease application
+            <span sec:authorize="isAuthenticated()"
+                  th:text="#{index_welcome}">Welcome to Lease application
+            </span>
             <span sec:authorize="isAuthenticated()"
                 th:text="${#authentication.principal.getUsername}">
             </span>
-            <span sec:authorize="!isAuthenticated()">
+            <span sec:authorize="!isAuthenticated()" th:text="#{index_login_system}">
                 Anonymous
             </span>
         </h5>

@@ -71,7 +71,7 @@ public class CountryService {
     public CountryDTO editCard(String countryNo){
         Optional<CountryEntity> optCountry=countryRepository.findByNo(countryNo);
         if (optCountry.isEmpty()){
-            throw new RuntimeException("country not found");
+            throw new RuntimeException("country " + countryNo+ " not found");
         }
         CountryEntity country=optCountry.get();
         return map(country);

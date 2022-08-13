@@ -51,7 +51,7 @@ public class LeaseService {
         }
         Optional<VendorEntity> optVendor=vendorRepository.findByNo(leaseCardDTO.getVendorNo());
         if (optVendor.isEmpty()){
-            throw  new RuntimeException("vendor not exit");
+            throw  new RuntimeException("vendor "+leaseCardDTO.getVendorNo()+" not exit");
         }
         leaseCardMapper.leaseCardDtoLeaseHeaderEntity(leaseCardDTO,leaseHeader);
         leaseHeader.setVendorNo(optVendor.get());
@@ -79,7 +79,7 @@ public class LeaseService {
     public LeaseCardDTO editCard(String contractNo){
         Optional<LeaseHeaderEntity> optContract=leaseRepository.findByContractNo(contractNo);
         if (optContract.isEmpty()){
-            throw new RuntimeException("contract not found");
+            throw new RuntimeException("contract "+contractNo+" not found");
         }
         LeaseHeaderEntity header=optContract.get();
         LeaseCardDTO result=leaseCardMapper.leaseHeaderEntityToLeaseCardDto(header);

@@ -349,12 +349,11 @@
                     <thead >
                         <tr class="ui-icon-key">
                             <th >
-                                <th:block>
-                                    <a th:href="@{/leasedetailcard/{code}/0(code=${leaseCardDTO.contractNo})}">
-                                        <img class="img_action" src="/images/add.png">
-                                    </a>
-                                </th:block>
-                                actions</th>
+                                <a th:href="@{/leasedetailcard/{code}/0(code=${leaseCardDTO.contractNo})}">
+                                    <img class="img_action" src="/images/add.png">
+                                </a>
+                                <span th:text="#{table_actions}"/>
+                            </th>
                             <th th:text="#{vehicle_no}">Vehicle no</th>
                             <th th:text="#{vehicle_plate}">Vehicle plate number</th>
                             <th th:text="#{lease_principal_excl}">Principal Excl Vat</th>

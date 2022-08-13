@@ -29,7 +29,7 @@ public class VendorService {
 
         Optional<CountryEntity> byCountryNo=this.countryRepository.findByNo(vendorDTO.getCountry());
         if (byCountryNo.isEmpty()){
-            throw new RuntimeException("country no is not exist");
+            throw new RuntimeException("country "+vendorDTO.getCountry()+" is not exist");
         }
         VendorEntity vendor;
         if (byNo.isPresent()){
@@ -91,7 +91,7 @@ public class VendorService {
     public VendorDTO editCard(String vendorNo) throws RuntimeException {
         Optional<VendorEntity> optVendor=vendorRepository.findByNo(vendorNo);
         if (optVendor.isEmpty()){
-            throw new RuntimeException("vendor not found");
+            throw new RuntimeException("vendor "+vendorNo+" not found");
         }
         VendorEntity vendor=optVendor.get();
         return map(vendor);

@@ -60,12 +60,12 @@ public class UserPermissionService {
 
         Optional<UserEntity> byName=this.userRepository.findByUsername(userPermissionDTO.getUsername());
         if (byName.isEmpty()){
-            throw new RuntimeException("user is missing");
+            throw new RuntimeException("user "+userPermissionDTO.getUsername()+" is missing");
         }
 
         Optional<PermissionEntity> byNo=this.permissionRepository.findByDescription(userPermissionDTO.getDescription());
         if (byNo.isEmpty()){
-            throw new RuntimeException("permission is missing");
+            throw new RuntimeException("permission "+userPermissionDTO.getDescription()+" is missing");
         }
         userpermission.setUser(byName.get());
         userpermission.setPermission(byNo.get());
@@ -80,7 +80,7 @@ public class UserPermissionService {
     public UserPermissionDTO editCard(Integer id) {
         Optional<UserPermissionEntity> optUserPermission=userPermissionRepository.findById(id);
         if (optUserPermission.isEmpty()){
-            throw new RuntimeException("user permission is not found");
+            throw new RuntimeException("user permission "+id+" is not found");
         }
         UserPermissionEntity userpermission=optUserPermission.get();
         return map(userpermission);

@@ -57,7 +57,7 @@ public class VehicleService {
     public VehicleDTO editCard(String vehicleNo){
         Optional<VehicleEntity> optVehicle=vehicleRepository.findByNo(vehicleNo);
         if (optVehicle.isEmpty()){
-            throw new RuntimeException("vehicle not found");
+            throw new RuntimeException("vehicle "+vehicleNo+" not found");
         }
         VehicleEntity vehicle=optVehicle.get();
         return map(vehicle);

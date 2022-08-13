@@ -34,7 +34,7 @@ public class PayOffGenerateService {
     public void generatePayoffPlan(String contractNo) throws RuntimeException{
         Optional<LeaseHeaderEntity> header=leaseRepository.findByContractNo(contractNo);
         if (header.isEmpty()){
-            throw new RuntimeException("Contract not found");
+            throw new RuntimeException("Contract " + contractNo +"not found");
         }
         generatePayoffPlan(header.get(),TypePlan.NEW_PLAN,0,false);
         calcDetailPrincipal(header.get());
@@ -161,11 +161,13 @@ public class PayOffGenerateService {
         BigDecimal calculateTotalExcl=leaseDetailService.totalExclAmount(leaseHeader.getContractNo());
 
         if (leaseTotalIncl.compareTo(calculateTotalIncl)!=0){
-            throw new RuntimeException("Amount Incl VAT is not equal with calculated amount");
+            throw new RuntimeException("Amount Incl VAT is not equal with calculated amount ("+
+                    leaseTotalIncl.toString()+"-"+calculateTotalIncl.toString()+")");
         }
 
         if (leaseTotalExcl.compareTo(calculateTotalExcl)!=0){
-            throw new RuntimeException("Amount Excl VAT is not equal with calculated amount");
+            throw new RuntimeException("Amount Excl VAT is not equal with calculated amount ("+
+                    leaseTotalExcl.toString()+"-"+calculateTotalExcl.toString()+")");
         }
 
         return true;

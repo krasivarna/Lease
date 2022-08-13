@@ -50,7 +50,7 @@ public class InvoiceService {
 
         Optional<PayoffPlan> opPay=payOffRepository.findByEntryNo(invoiceDTO.getPayplanEntry());
         if (opPay.isEmpty()){
-            throw new RuntimeException("Entry is not found");
+            throw new RuntimeException("Entry "+ invoiceDTO.getPayplanEntry() + " is not found");
         }
         invoice.setPayplanEntry(opPay.get());
 
